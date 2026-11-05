@@ -47,16 +47,16 @@ class Rpc:
     def call(self, method, kwargs, fail=True):
         """Returns the RPC result. On error, fails the module, or returns
         None and warns if fail is false."""
-        if self._connection is None:
-            if not self._module._socket_path:
-                self._module.fail_json(msg="This module requires the persistent connection %s.grpc, "
-                                           "set ansible_connection: %s.grpc" % (COLLECTION, COLLECTION))
-            self._connection = Connection(self._module._socket_path)
+        if self._connection is None and not self._module._socket_path:
+            self._module.fail_json(msg="This module requires the persistent connection %s.grpc, "
+                                       "set ansible_connection: %s.grpc" % (COLLECTION, COLLECTION))
         try:
+            if self._connection is None:
+                self._connection = Connection(self._module._socket_path)
             return getattr(self._connection, method)(**kwargs)
         except ConnectionError as exc:
             msg = to_text(exc, errors='surrogate_then_replace')
             if fail:
-                self._module.fail_json(msg=msg, code=exc.code)
+                self._module.fail_json(msg=msg, code=getattr(exc, 'code', -1))
             self._module.warn(msg)
             return None

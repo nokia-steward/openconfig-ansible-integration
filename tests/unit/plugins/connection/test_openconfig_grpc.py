@@ -8,10 +8,19 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import base64
+import datetime
 import hashlib
+import ipaddress
 import json
 import os
+import stat
 import sys
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
+import grpc
 
 import pytest
 
@@ -133,6 +142,66 @@ def test_connect_timeout():
     conn = make_connection(1, persistent_connect_timeout=1)
     with pytest.raises(AnsibleConnectionFailure, match='Failed to connect'):
         conn._connect()
+
+
+def _tls_server_credentials(cn=None, dns_sans=(), ip_sans=(), uri_sans=(), ca_signed=False):
+    now = datetime.datetime.now(datetime.timezone.utc)
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, cn)] if cn else [
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Nokia Test')
+    ])
+    if ca_signed:
+        ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'Nokia Test CA')])
+        sign_key = ca_key
+    else:
+        issuer = subject
+        sign_key = key
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - datetime.timedelta(days=1))
+        .not_valid_after(now + datetime.timedelta(days=1))
+    )
+    sans = (
+        [x509.DNSName(d) for d in dns_sans]
+        + [x509.IPAddress(ipaddress.ip_address(i)) for i in ip_sans]
+        + [x509.UniformResourceIdentifier(u) for u in uri_sans]
+    )
+    if sans:
+        builder = builder.add_extension(x509.SubjectAlternativeName(sans), critical=False)
+    cert = builder.sign(sign_key, hashes.SHA256())
+    cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+    key_pem = key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.TraditionalOpenSSL,
+        serialization.NoEncryption(),
+    )
+    return grpc.ssl_server_credentials([(key_pem, cert_pem)])
+
+
+@pytest.mark.parametrize('cert_kwargs', [
+    {'cn': 'sros1'},
+    {'cn': 'serial-999', 'dns_sans': ['sros1.lab.local']},
+    {'dns_sans': ['*.lab.local']},
+    {'dns_sans': ['*.local', 'sros1.local']},
+    {'dns_sans': ['*', 'sros1.lab.local']},
+    {'dns_sans': ['sros*.lab.local', 'sros1.lab.local']},
+    {'cn': 'serial-999', 'ip_sans': ['10.0.0.1']},
+    {'cn': 'sros-uri', 'uri_sans': ['https://sros.lab/id']},
+    {'cn': 'srl1', 'dns_sans': ['srl1.lab.local'], 'ca_signed': True},
+])
+def test_tls_validate_certs_false_without_ip_san(cert_kwargs):
+    creds = _tls_server_credentials(**cert_kwargs)
+    with OpenConfigMockServer(credentials=creds) as tls_server:
+        conn = make_connection(tls_server.port, validate_certs=False, persistent_connect_timeout=5)
+        try:
+            assert conn.gnmiCapabilities()['gNMIVersion'] == '0.10.0'
+        finally:
+            conn.close()
 
 
 def test_missing_certificate_file(server, tmp_path):
@@ -353,10 +422,38 @@ def test_gnoi_file_put_rejects_a_wrong_hash(server, tmp_path, monkeypatch):
 def test_gnoi_file_get(server, tmp_path):
     conn = make_connection(server.port)
     dest = tmp_path / 'downloaded.bin'
-    result = conn.invokeGnoi('file', 'Get', remote_path='/etc/motd', save_to=str(dest))
-    assert dest.read_bytes() == b'mock-file-data'
-    assert result['hash']['method'] == 'SHA256'
-    conn.close()
+    prev_umask = os.umask(0o022)
+    try:
+        result = conn.invokeGnoi('file', 'Get', remote_path='/etc/motd', save_to=str(dest))
+        assert dest.read_bytes() == b'mock-file-data'
+        assert result['hash']['method'] == 'SHA256'
+        assert stat.S_IMODE(dest.stat().st_mode) == 0o644
+
+        os.chmod(dest, 0o640)
+        conn.invokeGnoi('file', 'Get', remote_path='/etc/motd', save_to=str(dest))
+        assert stat.S_IMODE(dest.stat().st_mode) == 0o640
+    finally:
+        os.umask(prev_umask)
+        conn.close()
+
+
+@pytest.mark.parametrize('remote_path, match', [
+    ('/missing', 'gRPC NOT_FOUND'),
+    ('/partial', 'gRPC INTERNAL'),
+])
+def test_gnoi_file_get_error_preserves_existing_local_file(server, tmp_path, remote_path, match):
+    conn = make_connection(server.port)
+    dest = tmp_path / 'existing.bin'
+    dest.write_bytes(b'original-local-content')
+    os.chmod(dest, 0o644)
+    try:
+        with pytest.raises(AnsibleConnectionFailure, match=match):
+            conn.invokeGnoi('file', 'Get', remote_path=remote_path, save_to=str(dest))
+        assert dest.read_bytes() == b'original-local-content'
+        assert stat.S_IMODE(dest.stat().st_mode) == 0o644
+        assert [p.name for p in tmp_path.iterdir()] == ['existing.bin']
+    finally:
+        conn.close()
 
 
 def test_gnoi_factory_reset(server):

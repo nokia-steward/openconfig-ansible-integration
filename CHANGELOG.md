@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2]
+
+Compatibility and reliability fixes for TLS lab connections, check-mode backups, atomic gNOI file downloads, multi-module OpenConfig paths, and Ansible 2.18+ controllers.
+
+### Added
+- `gnmi_set` accepts `val` as a backward-compatible alias for `value` on `update` and `replace` entries.
+
+### Changed
+- Relaxed `requires_ansible` in `meta/runtime.yml` from `>=2.20.0` to `>=2.18.0` so Ansible 11 (`ansible-core` 2.18+) runs without unsupported-version warnings.
+
+### Fixed
+- `nokia.openconfig.grpc` with `validate_certs: false` now extracts DNS/IP Subject Alternative Names or Subject `commonName` from DER peer certificates (`getpeercert(True)`) so IP connections to certificates without an IP SAN automatically set `grpc.ssl_target_name_override`.
+- `gnmi_module.Rpc.call` uses `getattr(exc, 'code', -1)` so persistent-socket startup `ConnectionError` exceptions report the real connection failure instead of raising `AttributeError`.
+- `gnmi_set` with `backup: true` no longer fails with `AnsibleError: Failed while reading configuration backup` in `--check` mode or with `dry_run: true`.
+- `gnoi_file_get` streams into a temporary file (preserving existing file permissions or process `umask`) and atomically replaces `local_path` on completion so existing local files are not truncated when a remote RPC fails.
+- `gnmi.encode_path` and `gnmi._prefix` preserve the root module `origin` and strip nested OpenConfig module prefixes on both single-path and split `prefix` + `path` requests (such as `/openconfig-interfaces:interfaces/interface[name=eth0]/openconfig-if-ip:ipv4`).
+
 ## [2.0.1]
 
 Shorter gNMI paths with a dedicated origin, workflow playbooks shipped with the collection, and documentation organized by task. Existing playbooks keep working unchanged.

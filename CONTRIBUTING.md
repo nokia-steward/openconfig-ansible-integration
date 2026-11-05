@@ -17,7 +17,7 @@ Developers can use the included `run.sh` helper script to simplify local develop
 Before contributing, ensure your environment includes:
 
 * **Python 3.12 or newer** (3.13 recommended)
-* **Ansible Core 2.20 or newer** (2.22 recommended)
+* **Ansible Core 2.18 or newer** (2.22 recommended)
 * **Docker** for running SR OS and SR Linux container images
 * **Access** to SR OS and SR Linux container images and a valid SR OS license file
 * A Linux, macOS, or BSD-like system with common GNU tools (`bash`, `curl`, `make`, etc.)

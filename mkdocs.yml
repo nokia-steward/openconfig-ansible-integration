@@ -130,7 +130,7 @@ markdown_extensions:
 - pymdownx.tasklist:
     custom_checkbox: true
 extra:
-  version: 2.0.1
+  version: 2.0.2
   social:
   - icon: fontawesome/brands/github
     link: https://github.com/nokia-steward/openconfig-ansible-integration

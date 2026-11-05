@@ -51,6 +51,7 @@ class ActionModule(_ActionModule):
             config_module
             and self._task.args.get("backup")
             and not result.get("failed")
+            and "__backup__" in result
         ):
             self._handle_backup_option(result, task_vars)
 

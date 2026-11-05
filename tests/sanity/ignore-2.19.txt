@@ -1,0 +1,50 @@
+plugins/connection/grpc.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/connection/grpc.py validate-modules:version-added-must-be-major-or-minor # origin options added in the 2.0.1 release
+plugins/modules/gnmi_capabilities.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnmi_get.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnmi_get.py validate-modules:version-added-must-be-major-or-minor # origin options added in the 2.0.1 release
+plugins/modules/gnmi_set.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnmi_set.py validate-modules:version-added-must-be-major-or-minor # origin options added in the 2.0.1 release
+plugins/modules/gnmi_subscribe.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnmi_subscribe.py validate-modules:version-added-must-be-major-or-minor # origin options added in the 2.0.1 release
+plugins/modules/gnoi_bgp_clear_bgp_neighbor.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_factory_reset_start.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_file_get.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_file_put.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_file_remove.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_file_stat.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_file_transfer_to_remote.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_healthz_acknowledge.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_healthz_artifact.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_healthz_check.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_healthz_get.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_healthz_list.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_os_activate.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_os_install.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_os_verify.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_cancel_reboot.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_kill_process.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_ping.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_reboot.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_reboot_status.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_set_package.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_switch_control_processor.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_time.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnoi_system_traceroute.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_authz_get.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_authz_probe.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_authz_rotate.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_certz_add_profile.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_certz_can_generate_csr.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_certz_delete_profile.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_certz_get_profile_list.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_certz_rotate.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_credentialz_can_generate_key.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_credentialz_get_public_keys.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_credentialz_rotate_account_credentials.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_credentialz_rotate_host_parameters.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_pathz_get.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_pathz_probe.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/modules/gnsi_pathz_rotate.py validate-modules:missing-gplv3-license # BSD-3-Clause licensed collection
+plugins/module_utils/proto/gnmi.proto no-smart-quotes # vendored from openconfig/gnmi v0.14.1, kept unmodified
+tools/generate_docs.py shebang!skip # developer utility; run via python tools/generate_docs.py or make docs

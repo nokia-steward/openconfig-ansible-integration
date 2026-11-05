@@ -8,7 +8,7 @@
 [![Documentation](https://img.shields.io/badge/docs-MkDocs-blue)](https://nokia-steward.github.io/openconfig-ansible-integration/)
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/)
-[![Ansible](https://img.shields.io/badge/ansible--core-2.20%2B-blue)](https://docs.ansible.com/)
+[![Ansible](https://img.shields.io/badge/ansible--core-2.18%2B-blue)](https://docs.ansible.com/)
 
 Ansible collection **`nokia.openconfig`** for devices that expose **OpenConfig gRPC** services: **gNMI** 0.10.0, **gNOI**, and **gNSI**, validated on Nokia **SR OS** and **SR Linux**.
 
@@ -16,7 +16,7 @@ Ansible collection **`nokia.openconfig`** for devices that expose **OpenConfig g
 
 ## Requirements
 
-- **Ansible Core** 2.20 or newer  
+- **Ansible Core** 2.18 or newer  
 - **Python** 3.12 or newer on the controller  
 - **Python libraries**: [grpcio](https://pypi.org/project/grpcio/) ≥ 1.59.0, [protobuf](https://pypi.org/project/protobuf/) ≥ 3.20.3 (5.29+ on Python 3.14), [PyYAML](https://pypi.org/project/PyYAML/) ≥ 6.0
 - **Router**: gRPC server enabled with gNMI, gNOI and gNSI as needed
@@ -26,7 +26,7 @@ Ansible collection **`nokia.openconfig`** for devices that expose **OpenConfig g
 ## Installation
 
 ```bash
-pip install 'ansible-core>=2.20' 'grpcio>=1.59.0,<2' 'protobuf>=5.29.0,<8' 'PyYAML>=6.0'
+pip install 'ansible-core>=2.18' 'grpcio>=1.59.0,<2' 'protobuf>=5.29.0,<8' 'PyYAML>=6.0'
 ansible-galaxy collection install nokia.openconfig
 ```
 
@@ -130,4 +130,4 @@ Details: [module reference](https://nokia-steward.github.io/openconfig-ansible-i
 
 ---
 
-**Version:** 2.0.1 · **License:** BSD 3-Clause
+**Version:** 2.0.2 · **License:** BSD 3-Clause

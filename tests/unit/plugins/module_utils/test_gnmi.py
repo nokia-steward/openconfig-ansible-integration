@@ -80,6 +80,32 @@ def test_encode_path_origin_forms():
     assert legacy['elem'][0]['name'] == 'interfaces'
 
 
+def test_encode_path_multi_prefix_preserves_root_origin():
+    xpath = '/openconfig-interfaces:interfaces/interface[name=eth0]/openconfig-if-ip:ipv4'
+    encoded = gnmi.encode_path(xpath)
+    assert encoded == {
+        'origin': 'openconfig-interfaces',
+        'elem': [
+            {'name': 'interfaces'},
+            {'name': 'interface', 'key': {'name': 'eth0'}},
+            {'name': 'ipv4'},
+        ],
+    }
+    assert gnmi.encode_path(gnmi.decode_path(encoded)) == encoded
+    unprefixed_root = gnmi.encode_path('/interfaces/interface[name=eth0]/openconfig-if-ip:ipv4')
+    assert 'origin' not in unprefixed_root
+    assert unprefixed_root['elem'][2]['name'] == 'ipv4'
+    split_req = gnmi.build_get_request(
+        prefix='/openconfig-interfaces:interfaces/interface[name=eth0]',
+        path=['openconfig-if-ip:ipv4/addresses'],
+    )
+    assert split_req['prefix'] == {
+        'origin': 'openconfig-interfaces',
+        'elem': [{'name': 'interfaces'}, {'name': 'interface', 'key': {'name': 'eth0'}}],
+    }
+    assert split_req['path'] == [{'elem': [{'name': 'ipv4'}, {'name': 'addresses'}]}]
+
+
 def test_encode_path_explicit_origin_keeps_qualified_names():
     path = gnmi.encode_path('rfc7951:/Cisco-IOS-XE-native:native/hostname')
     assert path['origin'] == 'rfc7951'
@@ -156,7 +182,7 @@ def test_encode_path_target():
     assert gnmi.encode_path('', target='dut') == {'target': 'dut'}
 
 
-@pytest.mark.parametrize('path', ['/a[x=1', '/a[x]', '/a[=1]', '/[x=1]', '/a:b:c'])
+@pytest.mark.parametrize('path', ['/a[x=1', '/a[x]', '/a[=1]', '/[x=1]', '/a:b:c', '/oc:a/b:c:d', '/a/:b', '/a/b:'])
 def test_encode_path_invalid(path):
     with pytest.raises(GnmiError):
         gnmi.encode_path(path)

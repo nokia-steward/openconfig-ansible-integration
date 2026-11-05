@@ -239,6 +239,11 @@ class GnoiFileServicer(_GnxiRpcServicerBase, file_pb2_grpc.FileServicer):
 
     def Get(self, request, context):
         self._record('Get', request, context)
+        if request.remote_file == '/missing':
+            context.abort(grpc.StatusCode.NOT_FOUND, 'file not found')
+        if request.remote_file == '/partial':
+            yield file_pb2.GetResponse(contents=b'partial-chunk')
+            context.abort(grpc.StatusCode.INTERNAL, 'stream interrupted')
         payload = b'mock-file-data'
         yield file_pb2.GetResponse(contents=payload)
         yield file_pb2.GetResponse(hash=_sha256(payload))
@@ -428,7 +433,7 @@ class GnsiCredentialzServicer(_GnxiRpcServicerBase, credentialz_pb2_grpc.Credent
 
 class OpenConfigMockServer(object):
 
-    def __init__(self, address='127.0.0.1'):
+    def __init__(self, address='127.0.0.1', credentials=None):
         self.registry = RequestRegistry()
         self.gnmi = GnmiServicer(self.registry)
         self.gnoi = {
@@ -457,7 +462,11 @@ class OpenConfigMockServer(object):
         certz_pb2_grpc.add_CertzServicer_to_server(self.gnsi['certz'], self._grpc)
         pathz_pb2_grpc.add_PathzServicer_to_server(self.gnsi['pathz'], self._grpc)
         credentialz_pb2_grpc.add_CredentialzServicer_to_server(self.gnsi['credentialz'], self._grpc)
-        self.port = self._grpc.add_insecure_port('[%s]:0' % address if ':' in address else '%s:0' % address)
+        bind = '[%s]:0' % address if ':' in address else '%s:0' % address
+        if credentials is not None:
+            self.port = self._grpc.add_secure_port(bind, credentials)
+        else:
+            self.port = self._grpc.add_insecure_port(bind)
 
     def __enter__(self):
         self._grpc.start()

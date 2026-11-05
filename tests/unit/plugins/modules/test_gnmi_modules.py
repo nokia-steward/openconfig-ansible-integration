@@ -140,11 +140,43 @@ def test_set_rpc_error_fails(connection, run_module):
     assert result['msg'] == 'gRPC INVALID_ARGUMENT: bad value'
 
 
-def test_set_val_was_removed(connection, run_module):
-    result = run_module(gnmi_set.main, {'replace': [{'path': 'a', 'val': {'b': 1}}]})
-    assert result['failed']
-    assert 'val' in result['msg']
-    assert connection.calls == []
+def test_set_val_alias(connection, run_module):
+    connection.responses['gnmiGet'] = [get({'a': 1}), get({'a': 2})]
+    connection.responses['gnmiSet'] = get({})
+    result = run_module(gnmi_set.main, {
+        'update': [{'path': 'a', 'val': 2}],
+        'replace': [{'path': 'b', 'val': {'c': 3}}],
+    })
+    assert result['changed'] is True
+    request = connection.calls[1][1]
+    assert request['update'] == [{'path': 'a', 'value': 2}]
+    assert request['replace'] == [{'path': 'b', 'value': {'c': 3}}]
+
+
+def test_rpc_socket_connection_error_without_code(connection, run_module, monkeypatch):
+    def socket_down(**kwargs):
+        raise ConnectionError('unable to connect to socket /tmp/ansible-conn.sock')
+    connection.responses['gnmiCapabilities'] = socket_down
+    result = run_module(gnmi_capabilities.main, {})
+    assert result['failed'] is True
+    assert result['code'] == -1
+    assert 'unable to connect to socket' in result['msg']
+
+    connection.responses['gnmiGet'] = socket_down
+    connection.responses['gnmiSet'] = get({})
+    warn_result = run_module(gnmi_set.main, {'delete': ['/a']})
+    assert warn_result['changed'] is True
+    assert 'unable to connect to socket' in json.dumps(warn_result['warnings'])
+
+    def init_down(socket_path):
+        raise ConnectionError('socket setup failed')
+    monkeypatch.setattr(gnmi_set.Rpc, '_connection', None, raising=False)
+    from ansible_collections.nokia.openconfig.plugins.module_utils import gnmi_module
+    monkeypatch.setattr(gnmi_module, 'Connection', init_down)
+    init_result = run_module(gnmi_capabilities.main, {})
+    assert init_result['failed'] is True
+    assert init_result['code'] == -1
+    assert init_result['msg'] == 'socket setup failed'
 
 
 def test_set_check_mode_returns_request(connection, run_module):

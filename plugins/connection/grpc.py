@@ -237,7 +237,9 @@ import os
 import re
 import socket
 import ssl
+import stat
 import sys
+import tempfile
 import threading
 
 import yaml
@@ -280,6 +282,12 @@ try:
     from ansible_collections.nokia.openconfig.plugins.module_utils import gnsi as gnsi_util
 except Exception as exc:  # pylint: disable=broad-exception-caught
     GNSI_IMPORT_ERROR = exc
+
+try:
+    from cryptography import x509
+    HAS_CRYPTOGRAPHY = True
+except Exception:  # pylint: disable=broad-exception-caught
+    HAS_CRYPTOGRAPHY = False
 
 HAS_GRPC = GRPC_IMPORT_ERROR is None
 HAS_PROTOBUF = PROTOBUF_IMPORT_ERROR is None
@@ -367,20 +375,68 @@ def _read_file(path, name):
         raise AnsibleConnectionFailure("Failed to read %s '%s': %s" % (name, path, exc))
 
 
+def _wildcard_target(name):
+    """Converts a valid left-most wildcard DNS name (*.example.com) into a concrete host name."""
+    if name.startswith('*.') and len(name) > 2 and '*' not in name[2:]:
+        return 'host.' + name[2:]
+    return None
+
+
+def _cert_target_name(der):
+    """Extracts a target name from a DER X.509 certificate for ssl_target_name_override."""
+    if not der or not HAS_CRYPTOGRAPHY:
+        return None
+    try:
+        cert = x509.load_der_x509_certificate(der)
+    except ValueError:
+        return None
+    try:
+        san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+        dns_names = [n for n in san.get_values_for_type(x509.DNSName) if n]
+        for name in dns_names:
+            if '*' not in name:
+                return name
+        for name in dns_names:
+            target = _wildcard_target(name)
+            if target and '.' in name[2:]:
+                return target
+        for name in dns_names:
+            target = _wildcard_target(name)
+            if target:
+                return target
+        for addr in san.get_values_for_type(x509.IPAddress):
+            return str(addr)
+    except x509.ExtensionNotFound:
+        pass
+    for attr in cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME):
+        val = attr.value
+        if val:
+            if '*' not in val:
+                return val
+            target = _wildcard_target(val)
+            if target:
+                return target
+    return None
+
+
 def _peer_certificate_pem(host, port, server_name, timeout):
-    """Returns PEM and commonName from the TLS server without verifying the chain."""
+    """Returns PEM and target name from the TLS server without verifying the chain."""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     with socket.create_connection((host, int(port)), timeout=timeout) as sock:
         with ctx.wrap_socket(sock, server_hostname=server_name or host) as ssock:
-            pem = ssl.DER_cert_to_PEM_cert(ssock.getpeercert(True))
-            cn = None
-            for rdn in ssock.getpeercert().get('subject', ()):
-                for key, value in rdn:
-                    if key == 'commonName':
-                        cn = value
-                        break
+            der = ssock.getpeercert(True)
+            if not der:
+                return None, None
+            pem = ssl.DER_cert_to_PEM_cert(der)
+            cn = _cert_target_name(der)
+            if not cn:
+                for rdn in (ssock.getpeercert() or {}).get('subject', ()):
+                    for key, value in rdn:
+                        if key == 'commonName':
+                            cn = value
+                            break
             return pem, cn
 
 
@@ -762,9 +818,24 @@ class Connection(NetworkConnectionBase):
         output = []
         digest = None
         handle = None
+        tmp_path = None
+        target_mode = None
         if save_to:
             save_to = os.path.expanduser(save_to)
-            handle = open(save_to, 'wb')
+            try:
+                st = os.stat(save_to)
+                if not stat.S_ISDIR(st.st_mode):
+                    target_mode = stat.S_IMODE(st.st_mode)
+            except OSError:
+                umask = os.umask(0o077)
+                os.umask(umask)
+                target_mode = 0o666 & ~umask
+            save_dir = os.path.dirname(os.path.abspath(save_to))
+            try:
+                handle = tempfile.NamedTemporaryFile(dir=save_dir, prefix='.gnoi_get_', delete=False)
+                tmp_path = handle.name
+            except (IOError, OSError) as exc:
+                raise AnsibleConnectionFailure("Failed to open temporary file for '%s': %s" % (save_to, exc))
 
         try:
             for message in call:
@@ -778,11 +849,25 @@ class Connection(NetworkConnectionBase):
                 elif 'hash' in message.DESCRIPTOR.fields_by_name and message.HasField('hash'):
                     digest = json_format.MessageToDict(message.hash)
                 output.append(json_format.MessageToDict(message))
+            if handle is not None:
+                handle.close()
+                handle = None
+                if target_mode is not None:
+                    os.chmod(tmp_path, target_mode)
+                os.replace(tmp_path, save_to)
+                tmp_path = None
         except grpc.RpcError as exc:
             raise self._rpc_error(exc)
+        except (IOError, OSError) as exc:
+            raise AnsibleConnectionFailure("Failed to write '%s': %s" % (save_to, exc))
         finally:
             if handle is not None:
                 handle.close()
+            if tmp_path is not None:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
         result = {'output': output}
         if digest is not None:

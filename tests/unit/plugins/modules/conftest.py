@@ -11,7 +11,20 @@ import json
 
 import pytest
 
-from ansible.module_utils.testing import patch_module_args
+try:
+    from ansible.module_utils.testing import patch_module_args
+except ImportError:
+    from contextlib import contextmanager
+    from ansible.module_utils import basic
+
+    @contextmanager
+    def patch_module_args(args):
+        previous = basic._ANSIBLE_ARGS
+        basic._ANSIBLE_ARGS = json.dumps({'ANSIBLE_MODULE_ARGS': args}).encode('utf-8')
+        try:
+            yield
+        finally:
+            basic._ANSIBLE_ARGS = previous
 
 from ansible_collections.nokia.openconfig.plugins.module_utils import gnmi_module
 

@@ -193,10 +193,11 @@ def encode_path(xpath, target=None, origin=None, qualified=False):
     for element in _split_elements(xpath):
         entry = _parse_element(element, xpath)
         if ':' in entry['name'] and not qualified:
-            origin, sep, name = entry['name'].partition(':')
-            if ':' in name or not origin or not name:
+            mod, sep, name = entry['name'].partition(':')
+            if ':' in name or not mod or not name:
                 raise GnmiError("Invalid path syntax: %s" % element)
-            result['origin'] = origin
+            if not elems:
+                result['origin'] = mod
             entry['name'] = name
         elems.append(entry)
 
@@ -309,6 +310,7 @@ def _prefix(prefix, target, origin=None):
     default origin goes to a non-empty prefix, otherwise to each path.
     Paths that name their own origin keep it.
     """
+    explicit_prefix_origin = bool(_ORIGIN.match((prefix or '').strip()))
     encoded = encode_path(prefix, target, qualified=bool(origin))
     path_origin = origin
     if encoded.get('origin'):
@@ -316,10 +318,14 @@ def _prefix(prefix, target, origin=None):
     elif origin and encoded.get('elem'):
         encoded['origin'] = origin
         path_origin = None
-    qualified = bool(origin) or 'origin' in encoded
+    qualified = bool(origin) or explicit_prefix_origin
+    prefix_origin = bool(encoded.get('origin'))
 
     def encode(path):
-        return encode_path(path, origin=path_origin, qualified=qualified)
+        item = encode_path(path, origin=path_origin, qualified=qualified)
+        if prefix_origin and not _ORIGIN.match((path or '').strip()):
+            item.pop('origin', None)
+        return item
 
     return encoded or None, encode
 

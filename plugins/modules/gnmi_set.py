@@ -63,9 +63,11 @@ options:
       value:
         description:
           - Value to set. Dicts and lists are sent as JSON.
-          - The 1.0.0 name C(val) was removed in 2.0.0.
+          - Alias C(val) is accepted for compatibility with 1.0.0 playbooks.
         type: raw
         required: true
+        aliases:
+          - val
       encoding:
         description:
           - Encoding of this value, C(TypedValue). Defaults to the
@@ -88,9 +90,11 @@ options:
       value:
         description:
           - Value to set. Dicts and lists are sent as JSON.
-          - The 1.0.0 name C(val) was removed in 2.0.0.
+          - Alias C(val) is accepted for compatibility with 1.0.0 playbooks.
         type: raw
         required: true
+        aliases:
+          - val
       encoding:
         description:
           - Encoding of this value. Defaults to the encoding of the connection.
@@ -408,7 +412,7 @@ def _snapshot(module, rpc, paths, prefix, target, origin):
 def main():
     entry_spec = dict(
         path=dict(type='str', required=True),
-        value=dict(type='raw', required=True),
+        value=dict(type='raw', required=True, aliases=['val']),
         encoding=dict(type='str'),
     )
     backup_spec = dict(filename=dict(type='str'), dir_path=dict(type='path'))

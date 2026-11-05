@@ -147,12 +147,12 @@
             msg: >-
               The change failed on {{ inventory_hostname }}: {{ ansible_failed_result.msg | default('see above') }}.
               {{ 'The confirmed commit was rolled back.' if use_confirmed_commit | bool and applied is succeeded
-                 else 'Restore from ' ~ backup.backup_path ~ ' if needed (gnmi_set replace on /).' }}
+                 else 'Restore from ' ~ (backup.backup_path | default('backup')) ~ ' if needed (gnmi_set replace on /).' }}
 
     - name: Summarize
       ansible.builtin.debug:
         msg:
           - "Changed: {{ applied.changed }}"
-          - "Backup: {{ backup.backup_path }}"
+          - "Backup: {{ backup.backup_path | default('skipped (check mode)') }}"
           - "Verified paths: {{ verify | length }}"
           - "{{ 'Confirmed commit ' ~ commit_id if use_confirmed_commit | bool else 'Committed without confirmation' }}"

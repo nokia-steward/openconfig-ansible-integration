@@ -1,5 +1,5 @@
 ---
-requires_ansible: ">=2.20.0"
+requires_ansible: ">=2.18.0"
 
 # module_defaults group for the gNMI modules that take paths, for example
 # to set origin, encoding or target once per play: group/nokia.openconfig.gnmi
