@@ -95,4 +95,4 @@ The implementation follows the OpenConfig specifications, so the collection work
 
 ---
 
-**Collection version:** 2.0.2 · **License:** BSD 3-Clause · **Ansible:** 2.18+ · **Python:** 3.12+
+**Collection version:** 2.0.3 · **License:** BSD 3-Clause · **Ansible Core:** 2.20+ (2.22 recommended) · **Python:** 3.12+ (3.13 recommended)
