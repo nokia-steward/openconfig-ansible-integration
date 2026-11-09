@@ -1,10 +1,11 @@
 # Installation
 
 !!! tip "Prerequisites"
-    **Python:** `3.12+` (3.13 recommended), **Ansible Core:** `2.18+`, **Router:** gRPC server enabled (see [Quick Start](quick-start.md))
+    **Python:** `3.12+` (3.13 recommended), **Ansible Core:** `2.20+` (2.22 recommended), **Router:** gRPC server enabled (see [Quick Start](quick-start.md))
 
     The Ansible controller must reach the gRPC port of the routers (often `57400`).
     Ansible controllers run on Linux and macOS. On Windows, use WSL.
+    Older Ansible and Python releases no longer receive security fixes, see [Supported Ansible and Python versions](../support.md#supported-ansible-and-python-versions).
 
 ## External dependencies
 
@@ -36,7 +37,7 @@ source ansible-env/bin/activate
 
 ```bash
 pip install --upgrade pip
-pip install 'ansible-core>=2.18' 'grpcio>=1.59.0,<2' 'protobuf>=5.29.0,<8' 'PyYAML>=6.0'
+pip install 'ansible-core>=2.20' 'grpcio>=1.59.0,<2' 'protobuf>=5.29.0,<8' 'PyYAML>=6.0'
 ```
 
 ### Step 3: Install the collection
@@ -46,13 +47,13 @@ pip install 'ansible-core>=2.18' 'grpcio>=1.59.0,<2' 'protobuf>=5.29.0,<8' 'PyYA
 ansible-galaxy collection install nokia.openconfig --upgrade
 ```
 
-Pre-release versions are only installed when requested, either with `--pre` or with an explicit version such as `nokia.openconfig:==2.0.2`.
+Pre-release versions are only installed when requested, either with `--pre` or with an explicit version such as `nokia.openconfig:==2.0.3`.
 ///
 /// tab | GitHub Release
 Each [GitHub release](https://github.com/nokia-steward/openconfig-ansible-integration/releases) has the collection tarball attached, the same artifact that is published on Galaxy:
 
 ```bash
-VERSION=2.0.2
+VERSION=2.0.3
 curl -LO https://github.com/nokia-steward/openconfig-ansible-integration/releases/download/${VERSION}/nokia-openconfig-${VERSION}.tar.gz
 ansible-galaxy collection install nokia-openconfig-${VERSION}.tar.gz --force
 ```
