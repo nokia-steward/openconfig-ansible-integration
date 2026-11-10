@@ -5,6 +5,7 @@
 # Nokia OpenConfig Ansible Collection
 
 [![CI](https://github.com/nokia-steward/openconfig-ansible-integration/actions/workflows/ci.yml/badge.svg)](https://github.com/nokia-steward/openconfig-ansible-integration/actions/workflows/ci.yml)
+[![Ansible Galaxy](https://img.shields.io/ansible/collection/v/nokia/openconfig?logo=ansible&logoColor=white)](https://galaxy.ansible.com/ui/repo/published/nokia/openconfig/)
 [![Documentation](https://img.shields.io/badge/docs-MkDocs-blue)](https://nokia-steward.github.io/openconfig-ansible-integration/)
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/)
@@ -130,4 +131,4 @@ Details: [module reference](https://nokia-steward.github.io/openconfig-ansible-i
 
 ---
 
-**Version:** 2.0.3 · **License:** BSD 3-Clause
+**Version:** 2.0.4 · **License:** BSD 3-Clause

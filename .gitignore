@@ -19,3 +19,4 @@ plugins/module_utils/proto/gnsi/*_pb2_grpc.py
 .tmp/
 tests/output/
 site/
+importer_result.json

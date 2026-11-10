@@ -4,8 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2026-11-10
+
+### Added
+
+- Release workflow validates the collection artifact with `galaxy-importer` before upload (`tools/import_galaxy.sh`)
+- README Ansible Galaxy badge with live version from Galaxy, linking to the [published collection](https://galaxy.ansible.com/ui/repo/published/nokia/openconfig/)
+- `make build-collection` and `make import-galaxy` for local release checks
+
 ## [2.0.3]
+
 ### Changed
+
 - Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.18+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/openconfig-ansible-integration/support/#supported-ansible-and-python-versions).
 
 ## [2.0.2]

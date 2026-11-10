@@ -51,6 +51,9 @@ jobs:
       - name: Smoke test (Python 3.13, ansible-core 2.22)
         run: tools/smoke_test.sh "${{ steps.meta.outputs.filename }}"
 
+      - name: Validate collection for Ansible Galaxy (galaxy-importer)
+        run: tools/import_galaxy.sh "${{ steps.meta.outputs.filename }}"
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:

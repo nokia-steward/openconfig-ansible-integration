@@ -1,6 +1,7 @@
 -r requirements.txt
 # tools/build_openconfig_protos.sh uses uv to run its pinned protoc (grpcio-tools 1.47.5).
 uv
+galaxy-importer>=0.4.0
 pytest>=8
 pytest-mock
 pytest-xdist
