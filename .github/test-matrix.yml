@@ -45,4 +45,5 @@ suites:
     run: make test-integration
     timeout_minutes: 60
     cases:
-      - {python: '3.13', ansible: '2.22', srlinux: '25.7.2', sros: '25.7.R2'}
+      - {python: '3.13', ansible: '2.22', srlinux: '25.7.2', sros: '25.10.R1'}
+      - {python: '3.13', ansible: '2.22', srlinux: '25.7.2', sros: '26.10.R1'}

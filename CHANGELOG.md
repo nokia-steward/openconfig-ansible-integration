@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 - Tests follow the nokia-steward test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `units`, `integration-srlinux`, `integration`), run with `make test-setup` and `make test-<suite>`, with JUnit results. ansible-core devel runs as an experimental case of the weekly CI run, replacing the `devel.yml` workflow.
 - `tests/run.sh`: `units` and `sanity` moved to `make test-units` and `make test-sanity`; `run` continues after a failed playbook by default (`--exitfirst` stops early); `tests/dev.clab.yml` is renamed to `tests/topo.clab.yml`, the default topology of `run.sh`.
+- The `integration` suite (SR OS and SR Linux) tests SR OS 25.10.R1 and 26.10.R1, was 25.7.R2; `tests/topo.clab.yml` defaults to 25.10.R1.
 - `make test` runs `test-sanity` and `test-units`; the integration targets test the built collection artifact.
 - `tests/ci.clab.yml`: the SR Linux image can be overridden with `SRL_IMAGE`, next to `SRL_VERSION`.
 - Documentation workflow deploys to GitHub Pages in one job, from `main` or a manual run, built with Python 3.13.
@@ -18,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 
 - The collection tarball no longer includes the `.github` directory.
+- `make install-artifact` no longer warns that `.tmp/collections` is not a configured collections path.
+- `tests/playbooks/gNOI_System.yml` on SR OS: ping and traceroute run in Base to the system address, without `network_instance`, which SR OS 25.7.R2 rejects (`GMI #2007: Unsupported ProtoBuf leaf - field 'PingRequest.network_instance'`).
 
 ## [2.0.4] - 2026-11-10
 

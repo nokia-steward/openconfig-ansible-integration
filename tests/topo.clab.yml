@@ -9,7 +9,7 @@ topology:
     nokia_srlinux:
       image: ${SRL_IMAGE:=ghcr.io/nokia/srlinux}:${SRL_VERSION:=25.7.2}
     nokia_srsim:
-      image: ${SROS_IMAGE:=registry.srlinux.dev/pub/nokia_srsim}:${SROS_VERSION:=25.7.R2}
+      image: ${SROS_IMAGE:=registry.srlinux.dev/pub/nokia_srsim}:${SROS_VERSION:=25.10.R1}
       license: ./license.txt
 
   nodes:

@@ -75,7 +75,8 @@ install-artifact:
 	tools/build_openconfig_protos.sh
 	rm -rf .tmp/dist $(COLLECTIONS)
 	ansible-galaxy collection build . --output-path .tmp/dist
-	ansible-galaxy collection install --force -p $(COLLECTIONS) .tmp/dist/nokia-openconfig-*.tar.gz
+	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) \
+		ansible-galaxy collection install --force -p $(COLLECTIONS) .tmp/dist/nokia-openconfig-*.tar.gz
 
 docs:
 	@echo "Generating module and connection reference..."

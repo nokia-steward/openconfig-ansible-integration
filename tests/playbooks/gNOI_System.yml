@@ -1,6 +1,7 @@
 ---
-# Read-only gNOI System RPCs. The device pings and traces its own management
-# address in gnoi_network_instance (platform group_vars).
+# Read-only gNOI System RPCs. The device pings and traces its own address:
+# gnoi_ping_destination (default: the management address) in
+# gnoi_network_instance, left out when empty (platform group_vars).
 - name: gNOI System
   hosts: all
   gather_facts: false
@@ -19,10 +20,10 @@
           - time is not changed
           - (time.output | from_json).time | int > 0
 
-    - name: Ping the management address
+    - name: Ping the device's own address
       nokia.openconfig.gnoi_system_ping:
-        destination: "{{ ansible_host }}"
-        network_instance: "{{ gnoi_network_instance }}"
+        destination: "{{ gnoi_ping_destination | default(ansible_host) }}"
+        network_instance: "{{ gnoi_network_instance or omit }}"
         count: 2
         # SR OS accepts whole seconds only
         interval: 1s
@@ -38,10 +39,10 @@
           - responses | selectattr('received', 'defined') | map(attribute='received') | first | int == 2
 
     # SR OS supports UDP traceroute only
-    - name: Traceroute to the management address
+    - name: Traceroute to the device's own address
       nokia.openconfig.gnoi_system_traceroute:
-        destination: "{{ ansible_host }}"
-        network_instance: "{{ gnoi_network_instance }}"
+        destination: "{{ gnoi_ping_destination | default(ansible_host) }}"
+        network_instance: "{{ gnoi_network_instance or omit }}"
         l4protocol: UDP
         max_ttl: 5
       register: traceroute
