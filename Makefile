@@ -1,6 +1,13 @@
-.PHONY: help install-dev build-collection import-galaxy docs docs-serve test test-units test-sanity
+.PHONY: help install-dev build-collection import-galaxy docs docs-serve test test-units test-sanity \
+	test-setup test-integration-srlinux test-integration install-artifact
 
 PYTHON ?= python3
+PYTHON_VERSION = $$($(PYTHON) -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+# Test inputs from .github/test-matrix.yml (SRL_VERSION and SROS_VERSION default in tests/*.clab.yml)
+ANSIBLE_VERSION ?= 2.22
+# The integration tests use the built artifact, installed here, not the checkout
+COLLECTIONS := $(CURDIR)/.tmp/collections
+JUNIT_DIR := tests/output/junit
 
 help:
 	@echo "OpenConfig Ansible collection — common tasks"
@@ -8,11 +15,16 @@ help:
 	@echo "  make install-dev      Install requirements-dev.txt"
 	@echo "  make build-collection Build collection tarball (protos + ansible-galaxy collection build)"
 	@echo "  make import-galaxy    Run galaxy-importer on built tarball (requires build-collection)"
-	@echo "  make test             Build protos and run ansible-test units (same as CI sanity-units units step)"
-	@echo "  make test-units    Run unit tests only (requires protos and ansible-test)"
-	@echo "  make test-sanity   Run sanity tests (requires protos and ansible-test)"
-	@echo "  make docs          Generate reference + build MkDocs site (site/)"
-	@echo "  make docs-serve    Serve docs at http://127.0.0.1:8000"
+	@echo "  make test             The suites that need no lab (test-sanity, test-units)"
+	@echo "  make docs             Generate reference + build MkDocs site (site/)"
+	@echo "  make docs-serve       Serve docs at http://127.0.0.1:8000"
+	@echo ""
+	@echo "Test suites (.github/test-matrix.yml), JUnit in $(JUNIT_DIR):"
+	@echo "  make test-setup       Install ansible-core \$$ANSIBLE_VERSION, requirements-dev.txt, protos"
+	@echo "  make test-sanity      ansible-test sanity"
+	@echo "  make test-units       ansible-test units and a syntax check of the shipped playbooks"
+	@echo "  make test-integration-srlinux  Containerlab SR Linux (\$$SRL_VERSION)"
+	@echo "  make test-integration          Containerlab SR Linux and SR OS (needs an SR-SIM license)"
 
 install-dev:
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
@@ -28,17 +40,42 @@ import-galaxy:
 	test -f "$$ARTIFACT" || (echo "Artifact $$ARTIFACT not found; run make build-collection first" >&2; exit 1); \
 	tools/import_galaxy.sh "$$ARTIFACT"
 
-test: test-units
+test: test-sanity test-units
 
-test-units:
+test-setup:
+	$(PYTHON) -m pip install --upgrade pip
+ifeq ($(ANSIBLE_VERSION),devel)
+	$(PYTHON) -m pip install -r requirements-dev.txt https://github.com/ansible/ansible/archive/devel.tar.gz
+else
+	$(PYTHON) -m pip install -r requirements-dev.txt "ansible-core==$(ANSIBLE_VERSION).*"
+endif
 	tools/build_openconfig_protos.sh
-	rm -rf tests/output site
-	tools/ansible_test.sh units --venv --python $$( $(PYTHON) -c 'import sys; print(".".join(map(str, sys.version_info[:2])))' ) -v
 
 test-sanity:
 	tools/build_openconfig_protos.sh
 	rm -rf tests/output site
-	tools/ansible_test.sh sanity --venv --python $$( $(PYTHON) -c 'import sys; print(".".join(map(str, sys.version_info[:2])))' ) -v
+	tools/ansible_test.sh sanity --venv --python $(PYTHON_VERSION) -v --junit
+
+test-units: install-artifact
+	rm -rf tests/output site
+	tools/ansible_test.sh units --venv --python $(PYTHON_VERSION) -v
+	ansible-inventory -i playbooks/examples/inventory.yml --graph
+	for playbook in playbooks/*.yml; do \
+		ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) ansible-playbook --syntax-check -i playbooks/examples/inventory.yml \
+			"nokia.openconfig.$$(basename "$$playbook" .yml)" || exit 1; \
+	done
+
+test-integration-srlinux: install-artifact
+	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo ci.clab.yml --suite integration-srlinux
+
+test-integration: install-artifact
+	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo topo.clab.yml --suite integration
+
+install-artifact:
+	tools/build_openconfig_protos.sh
+	rm -rf .tmp/dist $(COLLECTIONS)
+	ansible-galaxy collection build . --output-path .tmp/dist
+	ansible-galaxy collection install --force -p $(COLLECTIONS) .tmp/dist/nokia-openconfig-*.tar.gz
 
 docs:
 	@echo "Generating module and connection reference..."

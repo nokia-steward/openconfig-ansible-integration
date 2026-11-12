@@ -7,7 +7,7 @@ name: ansible
 topology:
   kinds:
     nokia_srlinux:
-      image: ghcr.io/nokia/srlinux:${SRL_VERSION:=25.7.2}
+      image: ${SRL_IMAGE:=ghcr.io/nokia/srlinux}:${SRL_VERSION:=25.7.2}
 
   nodes:
     srl:

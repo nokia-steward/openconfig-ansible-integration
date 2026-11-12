@@ -1,11 +1,16 @@
+# version: 1
+# Copied from nokia-steward-validator pattern/. Do not edit: the linter checks this file is unchanged.
+# What runs is defined in .github/test-matrix.yml; how a suite runs is defined by its Makefile target.
 ---
 name: CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [main, master]
+  schedule:
+    # Weekly, so experimental cases (upcoming releases) run without a pull request.
+    - cron: '17 5 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -15,175 +20,129 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  COLLECTION_PATH: ansible_collections/nokia/openconfig
-
 jobs:
-  sanity-units:
-    name: sanity and units (ansible-core ${{ matrix.ansible }}, Python ${{ matrix.python }})
+  plan:
+    name: plan
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Oldest supported core with the oldest controller Python
-          - ansible: '2.20'
-            python: '3.12'
-          # Previous stable with the newest controller Python
-          - ansible: '2.21'
-            python: '3.14'
-          # Current GA, same as the lab and release builds
-          - ansible: '2.22'
-            python: '3.13'
+    outputs:
+      cases: ${{ steps.plan.outputs.cases }}
+      count: ${{ steps.plan.outputs.count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          path: ${{ env.COLLECTION_PATH }}
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install ansible-core ${{ matrix.ansible }} and requirements
-        working-directory: ${{ env.COLLECTION_PATH }}
-        run: |
-          python -m pip install --upgrade pip
-          pip install "https://github.com/ansible/ansible/archive/stable-${{ matrix.ansible }}.tar.gz"
-          pip install -r requirements-dev.txt
-
-      - name: Build python wrappers for gRPC proto files
-        working-directory: ${{ env.COLLECTION_PATH }}
-        run: tools/build_openconfig_protos.sh
-
-      - name: Clean ansible-test artifacts before sanity
-        working-directory: ${{ env.COLLECTION_PATH }}
-        run: rm -rf tests/output site
-
-      - name: Sanity tests
-        working-directory: ${{ env.COLLECTION_PATH }}
-        run: ansible-test sanity --venv --python ${{ matrix.python }} -v --color
-
-      # Units also use --venv: gitignored *_pb2.py files are on disk after the
-      # build step above but are omitted from the default Docker sanity payload.
-      - name: Unit tests
-        working-directory: ${{ env.COLLECTION_PATH }}
-        run: ansible-test units --venv --python ${{ matrix.python }} -v --color
-
-      # Runs the shipped playbooks by name, as users do after installing
-      - name: Syntax check of the shipped playbooks
-        working-directory: ${{ env.COLLECTION_PATH }}
-        env:
-          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
-        run: |
-          ansible-inventory -i playbooks/examples/inventory.yml --graph
-          for playbook in playbooks/*.yml; do
-            ansible-playbook --syntax-check -i playbooks/examples/inventory.yml \
-              "nokia.openconfig.$(basename "$playbook" .yml)"
-          done
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sanity-units-${{ matrix.ansible }}-py${{ matrix.python }}
-          path: ${{ env.COLLECTION_PATH }}/tests/output/
-          if-no-files-found: ignore
-
-  integration:
-    name: integration (containerlab, ansible-core 2.22, Python 3.13)
-    needs: sanity-units
-    runs-on: ubuntu-latest
-    env:
-      SRSIM_LICENSE: ${{ secrets.SRSIM_LICENSE }}
-      SRL_IMAGE: ghcr.io/nokia/srlinux:25.7.2
-      SRSIM_IMAGE: registry.srlinux.dev/pub/nokia_srsim:25.7.R2
-    steps:
-      # Default checkout path on purpose: under ansible_collections/nokia/openconfig
-      # Ansible would load the checkout instead of the installed artifact.
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
-      - name: Install ansible-core 2.22 and requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install https://github.com/ansible/ansible/archive/stable-2.22.tar.gz
-          pip install -r requirements-dev.txt
+      - name: Install PyYAML
+        run: python -m pip install --quiet pyyaml
 
-      # Test the built artifact, as it would be installed from Galaxy
-      - name: Build and install the collection
-        run: |
-          tools/build_openconfig_protos.sh
-          ansible-galaxy collection build . --output-path "$RUNNER_TEMP/dist"
-          ansible-galaxy collection install --force -p "$RUNNER_TEMP/collections" "$RUNNER_TEMP"/dist/nokia-openconfig-*.tar.gz
-          echo "ANSIBLE_COLLECTIONS_PATH=$RUNNER_TEMP/collections" >> "$GITHUB_ENV"
+      # Cases needing a capability this runner lacks are listed in the job summary as not run.
+      - name: Plan cases from .github/test-matrix.yml
+        id: plan
+        env:
+          PROVIDES: ${{ vars.STEWARD_GITHUB_PROVIDES || 'docker,containerlab,kubernetes,helm,srlinux' }}
+          SRSIM: ${{ secrets.SRSIM_LICENSE != '' && ',srsim' || '' }}
+        run: python .github/scripts/matrix.py github --provides "$PROVIDES$SRSIM" >> "$GITHUB_OUTPUT"
 
-      - name: Select topology
-        id: topo
-        run: |
-          if [ -n "$SRSIM_LICENSE" ]; then
-            printf '%s\n' "$SRSIM_LICENSE" > tests/license.txt
-            echo "file=dev.clab.yml" >> "$GITHUB_OUTPUT"
-            echo "sros=true" >> "$GITHUB_OUTPUT"
-            echo "SR Linux and SR OS (SR-SIM) lab" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "file=ci.clab.yml" >> "$GITHUB_OUTPUT"
-            echo "sros=false" >> "$GITHUB_OUTPUT"
-            echo "> [!NOTE]" >> "$GITHUB_STEP_SUMMARY"
-            echo "> SR OS was skipped: the SRSIM_LICENSE secret is not available (forks and pull requests from forks run SR Linux only)." >> "$GITHUB_STEP_SUMMARY"
-          fi
+  test:
+    name: ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.cases) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Export the case inputs
+        env:
+          CASE_ENV: ${{ toJSON(matrix.env) }}
+        run: jq -r 'to_entries[] | "\(.key)=\(.value)"' <<< "$CASE_ENV" >> "$GITHUB_ENV"
+
+      - name: Setup Python ${{ matrix.python }}
+        if: matrix.python != ''
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+
+      - name: Setup Go ${{ matrix.go }}
+        if: matrix.go != ''
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Setup Node ${{ matrix.node }}
+        if: matrix.node != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+
+      # rustup is preinstalled on GitHub-hosted runners.
+      - name: Setup Rust ${{ matrix.rust }}
+        if: matrix.rust != ''
+        env:
+          RUST: ${{ matrix.rust }}
+        run: rustup toolchain install "$RUST" --profile minimal && rustup default "$RUST"
+
+      - name: Install packages
+        if: matrix.apt != ''
+        env:
+          APT: ${{ matrix.apt }}
+        run: sudo apt-get update && sudo apt-get install -y $APT
 
       - name: Install containerlab
+        if: matrix.containerlab
         run: bash -c "$(curl -sL https://get.containerlab.dev)"
 
-      - name: Pull images
+      - name: Create Kubernetes cluster (kind)
+        if: matrix.kubernetes
+        uses: helm/kind-action@v1
+
+      - name: Setup Helm
+        if: matrix.helm
+        uses: azure/setup-helm@v5
+
+      - name: SR OS simulator license
+        if: matrix.srsim
+        env:
+          SRSIM_LICENSE: ${{ secrets.SRSIM_LICENSE }}
         run: |
-          docker pull "$SRL_IMAGE"
-          if [ "${{ steps.topo.outputs.sros }}" = "true" ]; then
-            docker pull "$SRSIM_IMAGE"
-          fi
+          printf '%s\n' "$SRSIM_LICENSE" > "$RUNNER_TEMP/srsim.license"
+          echo "SRSIM_LICENSE_FILE=$RUNNER_TEMP/srsim.license" >> "$GITHUB_ENV"
 
-      - name: Deploy lab
-        run: |
-          tests/run.sh deploy --topo ${{ steps.topo.outputs.file }}
-          cat tests/clab-ansible/ansible-inventory.yml
+      - name: make test-setup
+        id: setup
+        run: make test-setup
 
-      - name: Run integration tests
-        run: tests/run.sh run --all --quiet
+      - name: ${{ matrix.run }}
+        id: suite
+        timeout-minutes: ${{ matrix.timeout }}
+        run: ${{ matrix.run }}
 
-      - name: Job summary
+      - name: Summary
         if: always()
+        env:
+          SUITE: ${{ matrix.suite }}
+          LABEL: ${{ matrix.label }}
+          SETUP: ${{ steps.setup.outcome }}
+          OUTCOME: ${{ steps.suite.outcome }}
+          EXPERIMENTAL: ${{ matrix.experimental && '--experimental' || '' }}
         run: |
-          if [ -f tests/output/integration-summary.md ]; then
-            cat tests/output/integration-summary.md >> "$GITHUB_STEP_SUMMARY"
-          fi
+          python3 .github/scripts/summary.py case --suite "$SUITE" --case "$LABEL" \
+            --setup-outcome "$SETUP" --outcome "$OUTCOME" $EXPERIMENTAL >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Collect lab logs
+      - name: Upload test output
         if: always()
-        run: |
-          mkdir -p tests/output/clab
-          for c in $(docker ps -a --filter label=containerlab=ansible --format '{{.Names}}'); do
-            docker logs "$c" > "tests/output/clab/$c.log" 2>&1 || true
-          done
-          sudo cp tests/clab-ansible/ansible-inventory.yml tests/clab-ansible/topology-data.json tests/output/clab/ 2>/dev/null || true
-          sudo chown -R "$(id -u):$(id -g)" tests/output
-
-      - name: Upload test results and lab logs
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: integration
+          name: ${{ matrix.id }}
           path: tests/output/
           if-no-files-found: ignore
-
-      - name: Destroy lab
-        if: always()
-        run: |
-          tests/run.sh destroy --topo ${{ steps.topo.outputs.file }}
-          rm -f tests/license.txt

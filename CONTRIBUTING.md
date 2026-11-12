@@ -69,21 +69,21 @@ bash -c "$(curl -sL https://get.containerlab.dev)"
 
 ### 5. Prepare images and licenses
 
-Pull the `nokia_srsim` and `nokia_srlinux` container images, and copy a valid SR OS license file to `tests/license.txt`.
+Pull the `nokia_srsim` and `nokia_srlinux` container images, and copy a valid SR OS license file to `tests/license.txt`
+(or point `SRSIM_LICENSE_FILE` at it). Without a license, add `--topo ci.clab.yml` (SR Linux only) to `deploy` and `destroy`.
 
 
 ### 6. Deploy and test the example lab
 
 ```bash
 cd tests
-chmod +x run.sh
 ./run.sh deploy
 ```
 
 ### 7. Run all regression tests
 
 ```bash
-./run.sh run --quiet --all
+./run.sh run --quiet          # or --category common
 ```
 
 ### 8. Clean up when finished
@@ -91,6 +91,9 @@ chmod +x run.sh
 ```bash
 ./run.sh destroy
 ```
+
+`make test-integration` (SR Linux and SR OS) and `make test-integration-srlinux` do all three steps against the
+built collection artifact. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ---
 
@@ -104,7 +107,7 @@ Follow Ansible and Python best practices:
 * Update `CHANGELOG.md` and `README.md` for user-visible changes
 * Validate your work with:
 
-  * `./run.sh sanity` and `./run.sh units`
+  * `make test-sanity` and `make test-units`
   * Linting and style checks
   * Unit and integration test suites
 
@@ -132,7 +135,7 @@ We welcome all contributions — from small fixes to major enhancements. Whether
 
 Before submitting a pull request:
 
-* Run all tests (`./run.sh sanity` and `./run.sh units`)
+* Run all tests (`make test-sanity` and `make test-units`)
 * Follow [PEP 8](https://peps.python.org/pep-0008/) and Ansible plugin guidelines
 * Ensure changes are documented and clearly commented
 * Update or add integration tests where relevant

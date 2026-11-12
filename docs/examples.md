@@ -105,7 +105,7 @@ The test runner groups the playbooks into categories, defined in [`tests/playboo
 
 ```bash
 cd tests
-./run.sh deploy                  # deploy the containerlab topology
+./run.sh deploy                  # SR OS and SR Linux; --topo ci.clab.yml for SR Linux only
 ./run.sh run --category common   # run one category
 ./run.sh destroy
 ```

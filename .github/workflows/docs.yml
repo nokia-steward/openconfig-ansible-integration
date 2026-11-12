@@ -4,20 +4,22 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-docs:
     name: Build Documentation
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: make install-dev
@@ -26,35 +28,22 @@ jobs:
         run: make docs
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: documentation
-          path: site/
+          path: ./site
 
   pages:
-    name: Deploy Documentation (on main)
+    name: Deploy Documentation
     runs-on: ubuntu-latest
     needs: build-docs
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     permissions:
       pages: write
       id-token: write
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: documentation
-          path: ./site
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './site'
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

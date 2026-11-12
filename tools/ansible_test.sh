@@ -41,7 +41,7 @@ case "$ROOT" in
     COLLECTION="$STAGE/ansible_collections/nokia/openconfig"
     mkdir -p "$COLLECTION"
     rsync -a --delete \
-      --exclude .git --exclude .venv --exclude .tmp --exclude dist --exclude tests/output \
+      --exclude .git --exclude .github --exclude .venv --exclude .tmp --exclude dist --exclude tests/output \
       --exclude '__pycache__' --exclude '*.tar.gz' \
       --exclude 'tests/clab-*' --exclude tests/license.txt \
       "$ROOT/" "$COLLECTION/"

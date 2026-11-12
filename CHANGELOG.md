@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - 2026-11-12
+
+### Changed
+
+- Tests follow the nokia-steward test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `units`, `integration-srlinux`, `integration`), run with `make test-setup` and `make test-<suite>`, with JUnit results. ansible-core devel runs as an experimental case of the weekly CI run, replacing the `devel.yml` workflow.
+- `tests/run.sh`: `units` and `sanity` moved to `make test-units` and `make test-sanity`; `run` continues after a failed playbook by default (`--exitfirst` stops early); `tests/dev.clab.yml` is renamed to `tests/topo.clab.yml`, the default topology of `run.sh`.
+- `make test` runs `test-sanity` and `test-units`; the integration targets test the built collection artifact.
+- `tests/ci.clab.yml`: the SR Linux image can be overridden with `SRL_IMAGE`, next to `SRL_VERSION`.
+- Documentation workflow deploys to GitHub Pages in one job, from `main` or a manual run, built with Python 3.13.
+- GitHub Actions updated: `actions/checkout` and `actions/setup-python` v7, `actions/upload-artifact` v7, `actions/download-artifact` v8, `actions/upload-pages-artifact` and `actions/deploy-pages` v5, `softprops/action-gh-release` v3.
+
+### Fixed
+
+- The collection tarball no longer includes the `.github` directory.
+
 ## [2.0.4] - 2026-11-10
 
 ### Added

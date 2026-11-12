@@ -1,0 +1,48 @@
+# Test matrix: the single source of truth for GitHub Actions (.github/workflows/ci.yml) and
+# nokia-steward-validator. Format: nokia-steward pattern version 1.
+#
+# Controller versions follow the support policy shared with nokia.sros and nokia.nsp: the
+# ansible-core releases that still receive security fixes, each paired with a controller Python
+# that it supports. ansible-core devel is an early warning and never blocks a merge.
+# The lab suites use the recommended controller (ansible-core 2.22, Python 3.13).
+version: 1
+
+inputs:
+  python:  {toolchain: python}
+  ansible: {env: ANSIBLE_VERSION}
+  srlinux: {env: SRL_VERSION, requires: [srlinux]}
+  sros:    {env: SROS_VERSION, requires: [srsim]}
+
+suites:
+  sanity:
+    run: make test-sanity
+    timeout_minutes: 30
+    cases:
+      - {python: '3.12', ansible: '2.20'}
+      - {python: '3.14', ansible: '2.21'}
+      - {python: '3.13', ansible: '2.22'}
+      - {python: '3.13', ansible: devel, experimental: true}
+
+  units:
+    run: make test-units
+    timeout_minutes: 30
+    cases:
+      - {python: '3.12', ansible: '2.20'}
+      - {python: '3.14', ansible: '2.21'}
+      - {python: '3.13', ansible: '2.22'}
+      - {python: '3.13', ansible: devel, experimental: true}
+
+  # SR Linux only (tests/ci.clab.yml); runs on GitHub without a license
+  integration-srlinux:
+    run: make test-integration-srlinux
+    timeout_minutes: 45
+    cases:
+      - {python: '3.13', ansible: '2.22', srlinux: '25.7.2'}
+      - {python: '3.13', ansible: '2.22', srlinux: '25.10.1', experimental: true}
+
+  # SR Linux and SR OS (tests/topo.clab.yml); needs an SR-SIM license
+  integration:
+    run: make test-integration
+    timeout_minutes: 60
+    cases:
+      - {python: '3.13', ansible: '2.22', srlinux: '25.7.2', sros: '25.7.R2'}

@@ -131,4 +131,4 @@ Details: [module reference](https://nokia-steward.github.io/openconfig-ansible-i
 
 ---
 
-**Version:** 2.0.4 · **License:** BSD 3-Clause
+**Version:** 2.0.5 · **License:** BSD 3-Clause

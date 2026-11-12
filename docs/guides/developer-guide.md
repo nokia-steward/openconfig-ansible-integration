@@ -118,20 +118,29 @@ Generated `*_pb2.py` files are **gitignored**; CI and release builds run the scr
 
 ## Tests
 
-Before pushing, run the same unit step CI uses (build protos, then `ansible-test units --venv`):
+`.github/test-matrix.yml` lists the test suites and the exact version combinations. CI runs every case as `make test-setup` followed by `make test-<suite>`, and you can run the same targets locally:
 
 ```bash
-make install-dev   # once: .venv + requirements-dev.txt
-make test          # or: make test-units / make test-sanity
+make test-setup                  # ansible-core $ANSIBLE_VERSION (default 2.22), requirements-dev.txt, protos
+make test-sanity                 # ansible-test sanity
+make test-units                  # ansible-test units and a syntax check of the shipped playbooks
+make test-integration-srlinux    # containerlab, SR Linux only
+make test-integration            # containerlab, SR Linux and SR OS (needs an SR-SIM license)
 ```
 
+The integration targets build and install the collection artifact first, deploy the lab, run all categories of `tests/playbooks.yml` and destroy the lab. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
+
 ```bash
-tools/ansible_test.sh units
+tools/ansible_test.sh units --python 3.13
 tools/ansible_test.sh sanity --docker default   # when Docker is available
 
-cd tests && ./run.sh units
-cd tests && ./run.sh integration   # containerlab
+cd tests
+./run.sh deploy                 # topo.clab.yml; --topo ci.clab.yml for SR Linux only
+./run.sh run --category common
+./run.sh destroy
 ```
+
+ansible-core devel runs as an experimental case: its failures are reported but never block a merge. The SR OS case needs a license; without an `SRSIM_LICENSE` secret, GitHub lists it as not run, and a maintainer runs it with nokia-steward-validator, which posts the result to the pull request. `.github/workflows/ci.yml`, `.github/scripts/` and `tests/run.sh` are shared files of the nokia-steward test pattern; change the matrix, not these files.
 
 ## Documentation
 
