@@ -15,14 +15,21 @@ Change the test matrix, not these files.
 ## Test matrix
 
 `../test-matrix.yml` lists suites, cases and versions (see the file header). Each case runs
-`make test-setup` and `make test-<suite>` with `ANSIBLE_VERSION`, `SROS_VERSION` and
-`SRL_VERSION` where applicable. To add a version, add a row under `cases`. `make test` runs
-lab-free suites locally.
+`make test-setup` and `make test-<suite>` with `ANSIBLE_VERSION`, `SROS_VERSION`,
+`SRL_VERSION` and `REGISTRY` where applicable. To add a version, add a row under `cases`.
+`make test` runs lab-free suites locally.
 
 The integration suites test one platform each, in a single-node lab with its own playbook list:
 `integration-sros` uses `tests/sros.clab.yml` and `tests/playbooks-sros.yml`,
 `integration-srlinux` uses `tests/srlinux.clab.yml` and `tests/playbooks-srlinux.yml`.
 They need containerlab 0.83.0 or newer.
+
+Each integration case names the image path it pulls, without the tag, as `registry` (for
+example `ghcr.io/nokia/srlinux` or `registry.srlinux.dev/pub/nokia_srsim`). A release without a
+patch number, such as `26.10`, runs the newest patch release in that registry at test time:
+`tools/resolve_image.py` reads the registry's tag list, and the job log shows the image it picked
+(`Lab image: ...`). Run locally with, for example,
+`make test-integration-srlinux SRL_VERSION=26.10 REGISTRY=registry.srlinux.dev/pub/srlinux`.
 
 ## Where the integration cases run
 

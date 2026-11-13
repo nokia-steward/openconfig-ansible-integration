@@ -3,8 +3,13 @@
 
 PYTHON ?= python3
 PYTHON_VERSION = $$($(PYTHON) -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-# Test inputs from .github/test-matrix.yml (SRL_VERSION and SROS_VERSION default in tests/*.clab.yml)
+# Test inputs from .github/test-matrix.yml. REGISTRY is the image path of the lab node; a
+# release without a patch number, e.g. 26.10, runs the newest patch release in it.
 ANSIBLE_VERSION ?= 2.22
+SRL_VERSION ?= 25.10
+SROS_VERSION ?= 25.10.R1
+SRL_REGISTRY = $(or $(REGISTRY),ghcr.io/nokia/srlinux)
+SROS_REGISTRY = $(or $(REGISTRY),registry.srlinux.dev/pub/nokia_srsim)
 # The integration tests use the built artifact, installed here, not the checkout
 COLLECTIONS := $(CURDIR)/.tmp/collections
 JUNIT_DIR := tests/output/junit
@@ -23,8 +28,8 @@ help:
 	@echo "  make test-setup       Install ansible-core \$$ANSIBLE_VERSION, requirements-dev.txt, protos"
 	@echo "  make test-sanity      ansible-test sanity"
 	@echo "  make test-units       ansible-test units and a syntax check of the shipped playbooks"
-	@echo "  make test-integration-sros     Containerlab SR OS (\$$SROS_VERSION, needs an SR-SIM license)"
-	@echo "  make test-integration-srlinux  Containerlab SR Linux (\$$SRL_VERSION)"
+	@echo "  make test-integration-sros     Containerlab SR OS (\$$SROS_VERSION, \$$REGISTRY, needs an SR-SIM license)"
+	@echo "  make test-integration-srlinux  Containerlab SR Linux (\$$SRL_VERSION, \$$REGISTRY)"
 
 install-dev:
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
@@ -66,12 +71,14 @@ test-units: install-artifact
 	done
 
 test-integration-sros: install-artifact
-	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo sros.clab.yml \
-		--playbooks playbooks-sros.yml --suite integration-sros
+	tag=$$($(PYTHON) tools/resolve_image.py "$(SROS_REGISTRY)" "$(SROS_VERSION)") && \
+	SROS_IMAGE="$(SROS_REGISTRY)" SROS_VERSION="$$tag" ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) \
+		tests/run.sh integration --topo sros.clab.yml --playbooks playbooks-sros.yml --suite integration-sros
 
 test-integration-srlinux: install-artifact
-	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo srlinux.clab.yml \
-		--playbooks playbooks-srlinux.yml --suite integration-srlinux
+	tag=$$($(PYTHON) tools/resolve_image.py "$(SRL_REGISTRY)" "$(SRL_VERSION)") && \
+	SRL_IMAGE="$(SRL_REGISTRY)" SRL_VERSION="$$tag" ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) \
+		tests/run.sh integration --topo srlinux.clab.yml --playbooks playbooks-srlinux.yml --suite integration-srlinux
 
 install-artifact:
 	tools/build_openconfig_protos.sh

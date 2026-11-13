@@ -124,9 +124,12 @@ Generated `*_pb2.py` files are **gitignored**; CI and release builds run the scr
 make test-setup                  # ansible-core $ANSIBLE_VERSION (default 2.22), requirements-dev.txt, protos
 make test-sanity                 # ansible-test sanity
 make test-units                  # ansible-test units and a syntax check of the shipped playbooks
-make test-integration-sros       # containerlab, SR OS (needs an SR-SIM license)
-make test-integration-srlinux    # containerlab, SR Linux
+make test-integration-sros       # containerlab, SR OS $SROS_VERSION (needs an SR-SIM license)
+make test-integration-srlinux    # containerlab, SR Linux $SRL_VERSION
+make test-integration-srlinux SRL_VERSION=26.10 REGISTRY=registry.srlinux.dev/pub/srlinux
 ```
+
+`REGISTRY` is the image path without the tag. A release without a patch number, such as `26.10`, runs the newest patch release in that registry; the target logs the image it picked.
 
 The integration tests are not end-to-end tests: each platform has its own single-node lab and playbook list, `tests/sros.clab.yml` with `tests/playbooks-sros.yml` and `tests/srlinux.clab.yml` with `tests/playbooks-srlinux.yml`. The integration targets build and install the collection artifact first, deploy the lab, run all categories of the list and destroy the lab. They need containerlab 0.83.0 or newer: older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject, and the node then starts without gRPC. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
 

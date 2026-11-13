@@ -7,7 +7,7 @@ name: ansible
 topology:
   kinds:
     nokia_srsim:
-      # Default when SROS_VERSION is unset; the tested releases are in .github/test-matrix.yml.
+      # Defaults without make, which sets the image from .github/test-matrix.yml.
       image: ${SROS_IMAGE:=registry.srlinux.dev/pub/nokia_srsim}:${SROS_VERSION:=25.10.R1}
       license: ./license.txt
 
