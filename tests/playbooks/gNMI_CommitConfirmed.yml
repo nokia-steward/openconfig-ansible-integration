@@ -2,7 +2,7 @@
 # Native YANG on each platform: commit_path comes from the nokia_srsim and
 # nokia_srlinux group_vars.
 - name: gNMI Commit extension (confirmed commit)
-  hosts: all
+  hosts: nokia_srsim:nokia_srlinux
   gather_facts: false
 
   vars:

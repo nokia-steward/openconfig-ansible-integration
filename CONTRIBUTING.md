@@ -70,9 +70,10 @@ bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.83.0
 
 ### 5. Prepare images and licenses
 
-Each platform has its own single-node lab and playbook list: `tests/sros.clab.yml` with `tests/playbooks-sros.yml`,
-and `tests/srlinux.clab.yml` with `tests/playbooks-srlinux.yml`. Pull the `nokia_srsim` or `nokia_srlinux` container
-image. SR OS also needs a valid license file at `tests/license.txt` (or `SRSIM_LICENSE_FILE` pointing at one).
+Each platform has its own single-node lab, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`; both run the one test
+list, `tests/playbooks.yml`, which skips the categories of the other platform. Pull the `nokia_srsim` or
+`nokia_srlinux` container image. SR OS also needs a valid license file at `tests/license.txt` (or
+`SRSIM_LICENSE_FILE` pointing at one).
 
 ### 6. Deploy and test the example lab
 
@@ -84,7 +85,7 @@ cd tests
 ### 7. Run all regression tests
 
 ```bash
-./run.sh run --playbooks playbooks-srlinux.yml --quiet   # or playbooks-sros.yml; --category common for one
+./run.sh run --quiet                             # --category common for one category
 ```
 
 ### 8. Clean up when finished
@@ -93,8 +94,9 @@ cd tests
 ./run.sh destroy --topo srlinux.clab.yml         # or --topo sros.clab.yml
 ```
 
-`make test-integration-sros` and `make test-integration-srlinux` do all three steps against the built collection
-artifact. Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
+`make test-integration` does all three steps against the built collection artifact, for SR OS when `SROS_VERSION`
+is set and for SR Linux otherwise (`make test-integration-sros` and `make test-integration-srlinux` pick the platform
+explicitly). Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ---
 

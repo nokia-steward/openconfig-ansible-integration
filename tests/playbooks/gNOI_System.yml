@@ -3,7 +3,7 @@
 # gnoi_ping_destination (default: the management address) in
 # gnoi_network_instance, left out when empty (platform group_vars).
 - name: gNOI System
-  hosts: all
+  hosts: nokia_srsim:nokia_srlinux
   gather_facts: false
 
   vars:

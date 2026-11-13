@@ -101,12 +101,12 @@ The Platform column names the routers a playbook runs on. Playbooks for both pla
 
 ### Running the integration tests
 
-The test runner groups the playbooks into categories, one list per platform: [`tests/playbooks-sros.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks-sros.yml) and [`tests/playbooks-srlinux.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks-srlinux.yml), for example `common`, `sros`, `srlinux`, `gnoi` and `gnsi`. Each list runs against a single-node containerlab topology, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`:
+The test runner groups the playbooks into categories in [`tests/playbooks.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks.yml), for example `common`, `sros`, `srlinux`, `gnoi` and `gnsi`. Each category names the platforms it applies to. The list runs against a single-node containerlab topology, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`, and skips the categories that do not apply to it:
 
 ```bash
 cd tests
-./run.sh deploy --topo srlinux.clab.yml                            # or --topo sros.clab.yml
-./run.sh run --playbooks playbooks-srlinux.yml --category common   # run one category
+./run.sh deploy --topo srlinux.clab.yml      # or --topo sros.clab.yml
+./run.sh run --category common               # run one category
 ./run.sh destroy --topo srlinux.clab.yml
 ```
 

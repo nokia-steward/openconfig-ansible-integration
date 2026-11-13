@@ -1,0 +1,76 @@
+---
+# Integration test categories used by run.sh, for every platform (suite integration).
+# Each case of the suite deploys one single-node lab, tests/sros.clab.yml or
+# tests/srlinux.clab.yml, and runs this whole list against it.
+#
+# hosts: the platforms a category applies to, as an Ansible host pattern of platform
+#        groups (tests/platforms.yml), the same as the hosts of its playbooks. A
+#        category with no host in the lab is reported as SKIPPED. To test another
+#        platform, add its group to tests/platforms.yml and to the categories it supports.
+#
+# Playbook suffixes name the YANG model family: _OC uses OpenConfig paths
+# (playbooks/vars/model_oc.yml), _SROS and _SRL use native SR OS and SR Linux
+# YANG. Playbooks without a suffix take their native paths from the platform
+# group_vars (playbooks/group_vars/nokia_srsim.yml, nokia_srlinux.yml).
+
+categories:
+  common:
+    description: "gNMI Capabilities, Get, Subscribe ONCE and backup"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Capabilities.yml
+      - playbooks/gNMI_GetConfig.yml
+      - playbooks/gNMI_SubscribeOnce.yml
+      - playbooks/gNMI_Backup.yml
+  openconfig:
+    description: "OpenConfig YANG: Get, Subscribe and one Set example (LLDP)"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_GetConfig_OC.yml
+      - playbooks/gNMI_Config_OC.yml
+      - playbooks/gNMI_Subscribe_OC.yml
+  sros:
+    description: "SR OS YANG"
+    hosts: nokia_srsim
+    playbooks:
+      - playbooks/gNMI_Config_SROS.yml
+      - playbooks/gNMI_Subscribe_SROS.yml
+      - playbooks/gNMI_SubscribeOnce_SROS.yml
+  srlinux:
+    description: "SR Linux YANG"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Config_SRL.yml
+      - playbooks/gNMI_Subscribe_SRL.yml
+      - playbooks/gNMI_Restore_SRL.yml
+  depth:
+    description: "gNMI Depth extension (Get and Subscribe), native YANG"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Depth.yml
+  commit_confirmed:
+    description: "gNMI Commit extension (confirmed commit) on Set, native YANG"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_CommitConfirmed.yml
+  config_subscription:
+    description: "gNMI ConfigSubscription extension on Subscribe, native YANG"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_ConfigSubscription.yml
+  gnoi:
+    description: "gNOI System and File RPCs"
+    hosts: nokia_srsim:nokia_srlinux
+    playbooks:
+      - playbooks/gNOI_System.yml
+      - playbooks/gNOI_File.yml
+  gnoi_healthz:
+    description: "gNOI Healthz RPCs"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNOI_Healthz_SRL.yml
+  gnsi:
+    description: "gNSI security RPCs"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNSI_Validate_SRL.yml

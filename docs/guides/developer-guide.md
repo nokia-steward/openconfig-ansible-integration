@@ -42,7 +42,7 @@ The `.proto` trees are complete, but modules exist only for RPCs that **Nokia SR
 Add an entry only when:
 
 1. Nokia documents the RPC on at least one platform, and a lab device does not return `UNIMPLEMENTED`.
-2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, add the playbook to `tests/playbooks-sros.yml` and/or `tests/playbooks-srlinux.yml`, and list `integration` under `validation`.
+2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, add the playbook to the category of `tests/playbooks.yml` that matches the platforms it supports, and list `integration` under `validation`.
 
 RPCs that cannot run safely in the lab (reboot, factory reset, OS install, gNSI rotations) are listed with `validation: [unit]`; their module notes say so. The manifest header lists RPCs that were evaluated and left out because both lab platforms return `UNIMPLEMENTED`.
 
@@ -124,14 +124,14 @@ Generated `*_pb2.py` files are **gitignored**; CI and release builds run the scr
 make test-setup                  # ansible-core $ANSIBLE_VERSION (default 2.22), requirements-dev.txt, protos
 make test-sanity                 # ansible-test sanity
 make test-units                  # ansible-test units and a syntax check of the shipped playbooks
-make test-integration-sros       # containerlab, SR OS $SROS_VERSION (needs an SR-SIM license)
-make test-integration-srlinux    # containerlab, SR Linux $SRL_VERSION
-make test-integration-srlinux SRL_VERSION=26.7 REGISTRY=ghcr.io/nokia/srlinux
+make test-integration            # containerlab: SR OS when $SROS_VERSION is set, else SR Linux $SRL_VERSION
+make test-integration SROS_VERSION=26.10.R1        # needs an SR-SIM license
+make test-integration SRL_VERSION=26.7 REGISTRY=ghcr.io/nokia/srlinux
 ```
 
 `REGISTRY` is the image path without the tag. A release without a patch number, such as `26.10`, runs the newest patch release in that registry; the target logs the image it picked.
 
-The integration tests are not end-to-end tests: each platform has its own single-node lab and playbook list, `tests/sros.clab.yml` with `tests/playbooks-sros.yml` and `tests/srlinux.clab.yml` with `tests/playbooks-srlinux.yml`. The integration targets build and install the collection artifact first, deploy the lab, run all categories of the list and destroy the lab. They need containerlab 0.83.0 or newer: older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject, and the node then starts without gRPC. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
+The integration tests are not end-to-end tests: each platform has its own single-node lab, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`, and both run the one test list, `tests/playbooks.yml`. Each category there names the platforms it applies to (`hosts: nokia_srsim:nokia_srlinux`, the same as the hosts of its playbooks); a category with no host in the lab is reported as skipped. The platform groups are declared in `tests/platforms.yml`, so a pattern may name a platform the lab lacks; to test another platform, add its group there and to the categories it supports. The integration targets build and install the collection artifact first, deploy the lab, run all categories of the list and destroy the lab. They need containerlab 0.83.0 or newer: older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject, and the node then starts without gRPC. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
 
 ```bash
 tools/ansible_test.sh units --python 3.13
@@ -139,7 +139,7 @@ tools/ansible_test.sh sanity --docker default   # when Docker is available
 
 cd tests
 ./run.sh deploy --topo srlinux.clab.yml         # or --topo sros.clab.yml
-./run.sh run --playbooks playbooks-srlinux.yml --category common
+./run.sh run --category common
 ./run.sh destroy --topo srlinux.clab.yml
 ```
 

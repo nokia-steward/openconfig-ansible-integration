@@ -6,8 +6,9 @@
 # that it supports. ansible-core devel is an early warning and never blocks a merge.
 #
 # sanity, units: one row per ansible-core and Python pair.
-# integration-sros, integration-srlinux: one single-node lab per platform (tests/sros.clab.yml,
-# tests/srlinux.clab.yml) with its own playbook list. Router releases: the x.10 releases, today
+# integration: one case per router release, each in a single-node lab (tests/sros.clab.yml or
+# tests/srlinux.clab.yml, chosen by the sros or srlinux input) running the one test list,
+# tests/playbooks.yml; categories for another platform are skipped. Router releases: the x.10 releases, today
 # 25.10 and 26.10. From 2027: the x.10 releases of the previous two years and the latest release
 # of the current year (for example 25.10, 26.10 and 27.3). Each case pairs one router release
 # with one controller pair and names the image path it pulls (registry). A release without a
@@ -41,19 +42,14 @@ suites:
       - {python: '3.13', ansible: '2.22'}
       - {python: '3.14', ansible: devel, experimental: true}
 
-  # Needs an SR-SIM license (SRSIM_LICENSE secret on GitHub, or nokia-steward-validator)
-  integration-sros:
-    run: make test-integration-sros
+  # The SR OS cases need an SR-SIM license (SRSIM_LICENSE secret on GitHub, or
+  # nokia-steward-validator, which runs the whole suite); GitHub runs the SR Linux cases.
+  integration:
+    run: make test-integration
     timeout_minutes: 45
     cases:
       - {python: '3.14', ansible: '2.21', sros: '25.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
       - {python: '3.13', ansible: '2.22', sros: '26.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
-
-  # Runs on GitHub without a license
-  integration-srlinux:
-    run: make test-integration-srlinux
-    timeout_minutes: 45
-    cases:
       - {python: '3.14', ansible: '2.21', srlinux: '25.10', registry: 'ghcr.io/nokia/srlinux'}
       # 26.10 once ghcr.io/nokia/srlinux has it; GitHub runners cannot reach registry.srlinux.dev
       - {python: '3.13', ansible: '2.22', srlinux: '26.7', registry: 'ghcr.io/nokia/srlinux'}

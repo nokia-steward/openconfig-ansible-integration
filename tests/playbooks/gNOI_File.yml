@@ -2,7 +2,7 @@
 # gNOI File round trip in gnoi_file_dir (platform group_vars): Put, Stat,
 # Get, Remove.
 - name: gNOI File
-  hosts: all
+  hosts: nokia_srsim:nokia_srlinux
   gather_facts: false
 
   vars:

@@ -19,7 +19,7 @@ The Nokia Ansible collections `nokia.openconfig`, `nokia.nsp` and `nokia.sros` s
 | Minimum | 2.20 | 3.12 |
 | Recommended | 2.22 | 3.13 |
 
-[`.github/test-matrix.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/.github/test-matrix.yml) lists every CI case: ansible-core and Python **pairs** under `sanity` and `units`, and the router releases under `integration-sros` (SR-SIM) and `integration-srlinux` (SR Linux), each in a single-node lab: the **x.10** releases (see the file header).
+[`.github/test-matrix.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/.github/test-matrix.yml) lists every CI case: ansible-core and Python **pairs** under `sanity` and `units`, and the router releases under `integration`, SR OS (SR-SIM) and SR Linux, each in a single-node lab: the **x.10** releases (see the file header).
 
 `ansible-core` 2.20 and newer run on Python 3.12 to 3.14, see the [ansible-core support matrix](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix). The modules of this collection run on the controller, so the routers need no Python.
 
