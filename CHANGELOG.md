@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - `make install-artifact` no longer warns that `.tmp/collections` is not a configured collections path.
 - `tests/playbooks/gNOI_System.yml` on SR OS: ping and traceroute run in Base to the system address, without `network_instance`, which SR OS 25.7.R2 rejects (`GMI #2007: Unsupported ProtoBuf leaf - field 'PingRequest.network_instance'`).
 - `tests/playbooks/gNMI_ConfigSubscription.yml`: the restore step resets the persistent connection first, which could be closed after the streaming subscription (`Connection reset by peer`).
+- `tests/playbooks/gNSI_Validate_SRL.yml`: Certz `CanGenerateCSR` sets `csrSuite`, which SR Linux 25.10 and newer require (`Invalid or unspecified CSR suite: 0`).
 
 ## [2.0.4] - 2026-11-10
 
