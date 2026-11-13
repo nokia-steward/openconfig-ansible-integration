@@ -2,8 +2,8 @@
 # Read-only gNOI System RPCs. The device pings and traces its own address:
 # gnoi_ping_destination (default: the management address) in
 # gnoi_network_instance, left out when empty (platform group_vars).
-- name: gNOI System
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNOI · system service
+  hosts: all
   gather_facts: false
 
   vars:

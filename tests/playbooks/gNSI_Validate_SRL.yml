@@ -1,7 +1,7 @@
 ---
 # gNSI on SR Linux (gNSI enabled on the mgmt grpc-server). Read-only RPCs plus
 # a Certz profile round trip; Rotate RPCs are not run against the lab.
-- name: gNSI SR Linux
+- name: gNSI · certz, authz, pathz, credentialz services
   hosts: nokia_srlinux
   gather_facts: false
 

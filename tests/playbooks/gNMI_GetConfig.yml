@@ -1,6 +1,6 @@
 ---
-- name: gNMI Get Configuration
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · get full configuration
+  hosts: all
   gather_facts: false
 
   vars:

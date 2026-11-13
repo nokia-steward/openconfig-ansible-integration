@@ -1,8 +1,8 @@
 ---
 # Native YANG on each platform: config_sub_path, config_leaf, state_leaf and
 # commit_path come from the nokia_srsim and nokia_srlinux group_vars.
-- name: gNMI ConfigSubscription extension
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · config subscription extension
+  hosts: all
   gather_facts: false
 
   vars:

@@ -1,6 +1,6 @@
 ---
-- name: gNMI Subscribe ONCE
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · subscribe once
+  hosts: all
   gather_facts: false
 
   vars:

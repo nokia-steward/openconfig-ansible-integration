@@ -1,6 +1,6 @@
 ---
-- name: gNMI Backup Configuration
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · config backup
+  hosts: all
   gather_facts: false
 
   vars:

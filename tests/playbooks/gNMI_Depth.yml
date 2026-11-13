@@ -1,6 +1,6 @@
 ---
-- name: gNMI Depth extension
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · depth extension (get, subscribe)
+  hosts: all
   gather_facts: false
 
   vars:

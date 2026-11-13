@@ -1,5 +1,5 @@
 ---
-- name: Nokia SRL Set/Get Configuration
+- name: gNMI · config set/get · Nokia SRLinux
   hosts: nokia_srlinux
   gather_facts: false
 

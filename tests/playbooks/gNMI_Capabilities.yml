@@ -1,6 +1,6 @@
 ---
-- name: gNMI Capabilities
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · capabilities
+  hosts: all
   gather_facts: false
 
   vars:

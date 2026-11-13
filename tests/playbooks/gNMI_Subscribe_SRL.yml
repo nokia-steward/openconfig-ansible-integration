@@ -1,5 +1,5 @@
 ---
-- name: Nokia SRL Streaming Telemetry
+- name: gNMI · subscribe sample · Nokia SRLinux
   hosts: nokia_srlinux
   gather_facts: false
 

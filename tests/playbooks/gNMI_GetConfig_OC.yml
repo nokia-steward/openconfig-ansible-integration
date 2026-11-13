@@ -1,8 +1,8 @@
 ---
 # SR OS returns OpenConfig configuration only for what was configured through
 # OpenConfig, so the configuration may be empty there; state is always there.
-- name: OpenConfig Get
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · get · OpenConfig
+  hosts: all
   gather_facts: false
 
   vars:
