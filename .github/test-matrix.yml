@@ -55,5 +55,5 @@ suites:
     timeout_minutes: 45
     cases:
       - {python: '3.14', ansible: '2.21', srlinux: '25.10', registry: 'ghcr.io/nokia/srlinux'}
-      # 26.10 is not on ghcr.io/nokia/srlinux yet
-      - {python: '3.13', ansible: '2.22', srlinux: '26.10', registry: 'registry.srlinux.dev/pub/srlinux'}
+      # 26.10 once ghcr.io/nokia/srlinux has it; GitHub runners cannot reach registry.srlinux.dev
+      - {python: '3.13', ansible: '2.22', srlinux: '26.7', registry: 'ghcr.io/nokia/srlinux'}

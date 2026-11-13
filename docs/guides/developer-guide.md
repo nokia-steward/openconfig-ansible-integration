@@ -126,7 +126,7 @@ make test-sanity                 # ansible-test sanity
 make test-units                  # ansible-test units and a syntax check of the shipped playbooks
 make test-integration-sros       # containerlab, SR OS $SROS_VERSION (needs an SR-SIM license)
 make test-integration-srlinux    # containerlab, SR Linux $SRL_VERSION
-make test-integration-srlinux SRL_VERSION=26.10 REGISTRY=registry.srlinux.dev/pub/srlinux
+make test-integration-srlinux SRL_VERSION=26.7 REGISTRY=ghcr.io/nokia/srlinux
 ```
 
 `REGISTRY` is the image path without the tag. A release without a patch number, such as `26.10`, runs the newest patch release in that registry; the target logs the image it picked.

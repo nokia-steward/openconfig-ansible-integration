@@ -29,7 +29,8 @@ example `ghcr.io/nokia/srlinux` or `registry.srlinux.dev/pub/nokia_srsim`). A re
 patch number, such as `26.10`, runs the newest patch release in that registry at test time:
 `tools/resolve_image.py` reads the registry's tag list, and the job log shows the image it picked
 (`Lab image: ...`). Run locally with, for example,
-`make test-integration-srlinux SRL_VERSION=26.10 REGISTRY=registry.srlinux.dev/pub/srlinux`.
+`make test-integration-srlinux SRL_VERSION=26.7 REGISTRY=ghcr.io/nokia/srlinux`. GitHub runners
+cannot reach `registry.srlinux.dev`, so the SR Linux cases use `ghcr.io/nokia/srlinux`.
 
 ## Where the integration cases run
 
