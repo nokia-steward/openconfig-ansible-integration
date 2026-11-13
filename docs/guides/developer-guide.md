@@ -42,7 +42,7 @@ The `.proto` trees are complete, but modules exist only for RPCs that **Nokia SR
 Add an entry only when:
 
 1. Nokia documents the RPC on at least one platform, and a lab device does not return `UNIMPLEMENTED`.
-2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, and list `integration` under `validation`.
+2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, add the playbook to `tests/playbooks-sros.yml` and/or `tests/playbooks-srlinux.yml`, and list `integration` under `validation`.
 
 RPCs that cannot run safely in the lab (reboot, factory reset, OS install, gNSI rotations) are listed with `validation: [unit]`; their module notes say so. The manifest header lists RPCs that were evaluated and left out because both lab platforms return `UNIMPLEMENTED`.
 
@@ -124,23 +124,23 @@ Generated `*_pb2.py` files are **gitignored**; CI and release builds run the scr
 make test-setup                  # ansible-core $ANSIBLE_VERSION (default 2.22), requirements-dev.txt, protos
 make test-sanity                 # ansible-test sanity
 make test-units                  # ansible-test units and a syntax check of the shipped playbooks
-make test-integration-srlinux    # containerlab, SR Linux only
-make test-integration            # containerlab, SR Linux and SR OS (needs an SR-SIM license)
+make test-integration-sros       # containerlab, SR OS (needs an SR-SIM license)
+make test-integration-srlinux    # containerlab, SR Linux
 ```
 
-The integration targets build and install the collection artifact first, deploy the lab, run all categories of `tests/playbooks.yml` and destroy the lab. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
+The integration tests are not end-to-end tests: each platform has its own single-node lab and playbook list, `tests/sros.clab.yml` with `tests/playbooks-sros.yml` and `tests/srlinux.clab.yml` with `tests/playbooks-srlinux.yml`. The integration targets build and install the collection artifact first, deploy the lab, run all categories of the list and destroy the lab. They need containerlab 0.83.0 or newer: older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject, and the node then starts without gRPC. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
 
 ```bash
 tools/ansible_test.sh units --python 3.13
 tools/ansible_test.sh sanity --docker default   # when Docker is available
 
 cd tests
-./run.sh deploy                 # topo.clab.yml; --topo ci.clab.yml for SR Linux only
-./run.sh run --category common
-./run.sh destroy
+./run.sh deploy --topo srlinux.clab.yml         # or --topo sros.clab.yml
+./run.sh run --playbooks playbooks-srlinux.yml --category common
+./run.sh destroy --topo srlinux.clab.yml
 ```
 
-ansible-core devel runs as an experimental case: its failures are reported but never block a merge. The SR OS case needs a license; without an `SRSIM_LICENSE` secret, GitHub lists it as not run, and a maintainer runs it with nokia-steward-validator, which posts the result to the pull request. `.github/workflows/ci.yml`, `.github/scripts/` and `tests/run.sh` are shared files of the nokia-steward test pattern; change the matrix, not these files.
+ansible-core devel runs as an experimental case: its failures are reported but never block a merge. The SR OS cases need a license; without an `SRSIM_LICENSE` secret, GitHub lists them as not run, and a maintainer runs them with nokia-steward-validator, which posts the result to the pull request. See [.github/workflows/README.md](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/.github/workflows/README.md). `.github/workflows/ci.yml`, `.github/scripts/` and `tests/run.sh` are shared files of the nokia-steward test pattern; change the matrix, not these files.
 
 ## Documentation
 

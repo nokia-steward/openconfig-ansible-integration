@@ -10,7 +10,7 @@ The collection is a community project. There is no commercial support and no ser
 - [GitHub Issues](https://github.com/nokia-steward/openconfig-ansible-integration/issues) — bugs and questions
 - [Ansible Galaxy](https://galaxy.ansible.com/ui/repo/published/nokia/openconfig/) — released versions
 
-## Supported Ansible and Python versions
+## Validated in CI
 
 The Nokia Ansible collections `nokia.openconfig`, `nokia.nsp` and `nokia.sros` share one support policy for the Ansible controller. The minimum is the oldest `ansible-core` release that still receives security fixes, so that a supported installation also receives fixes for known vulnerabilities (CVEs).
 
@@ -18,13 +18,16 @@ The Nokia Ansible collections `nokia.openconfig`, `nokia.nsp` and `nokia.sros` s
 | --- | --- | --- |
 | Minimum | 2.20 | 3.12 |
 | Recommended | 2.22 | 3.13 |
-| Tested in CI | 2.20, 2.21, 2.22 | 3.12, 3.13, 3.14 |
+
+[`.github/test-matrix.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/.github/test-matrix.yml) lists every CI case: ansible-core and Python **pairs** under `sanity` and `units`, and the router releases under `integration-sros` (SR-SIM) and `integration-srlinux` (SR Linux), each in a single-node lab: the **x.10** releases (see the file header).
 
 `ansible-core` 2.20 and newer run on Python 3.12 to 3.14, see the [ansible-core support matrix](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix). The modules of this collection run on the controller, so the routers need no Python.
 
 Older releases, `ansible-core` 2.19 and earlier, no longer receive security fixes. The collection may still work with them, but they are not tested, Ansible prints a warning that the collection does not support the running version, and issues reported against them are handled on a best-effort basis. Upgrade to a supported release instead.
 
 The minimum follows the `ansible-core` release cycle: it is raised when an `ansible-core` release reaches end of life, in May and November.
+
+Other SR OS and SR Linux releases may work but are not validated in CI.
 
 ## Before production
 

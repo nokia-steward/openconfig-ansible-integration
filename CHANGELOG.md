@@ -4,15 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.5] - 2026-11-12
+## [2.0.5] - Unreleased
 
 ### Changed
 
-- Tests follow the nokia-steward test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `units`, `integration-srlinux`, `integration`), run with `make test-setup` and `make test-<suite>`, with JUnit results. ansible-core devel runs as an experimental case of the weekly CI run, replacing the `devel.yml` workflow.
-- `tests/run.sh`: `units` and `sanity` moved to `make test-units` and `make test-sanity`; `run` continues after a failed playbook by default (`--exitfirst` stops early); `tests/dev.clab.yml` is renamed to `tests/topo.clab.yml`, the default topology of `run.sh`.
-- The `integration` suite (SR OS and SR Linux) tests SR OS 25.10.R1 and 26.10.R1, was 25.7.R2; `tests/topo.clab.yml` defaults to 25.10.R1.
+- Tests follow the nokia-steward test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `units`, `integration-sros`, `integration-srlinux`), run with `make test-setup` and `make test-<suite>`, with JUnit results. ansible-core devel runs as an experimental case of the weekly CI run, replacing the `devel.yml` workflow. The controller pairs match `nokia.sros`.
+- Integration tests are split by platform, each with a single-node lab and its own playbook list: `make test-integration-sros` (`tests/sros.clab.yml`, `tests/playbooks-sros.yml`) and `make test-integration-srlinux` (`tests/srlinux.clab.yml`, `tests/playbooks-srlinux.yml`). They replace `tests/dev.clab.yml`, `tests/ci.clab.yml` and `tests/playbooks.yml`. The playbooks do not depend on a link between the routers.
+- Tested router releases are the x.10 releases: SR OS 25.10.R1 and 26.10.R1 (was 25.7.R2), SR Linux 25.10 and 26.7 until 26.10 is published (was 25.7.2). The images default to SR OS 25.10.R1 and SR Linux 25.10; the image registries can be overridden with `SROS_IMAGE` and `SRL_IMAGE`.
+- The integration tests need containerlab 0.83.0 or newer. Older releases render the TLS 1.3 cipher `tls-aes128-ccm8-sha256` for nodes with issued certificates, which SR OS 26.7 and newer reject; the node then starts with its default configuration and without gRPC.
+- `tests/run.sh`: `units` and `sanity` moved to `make test-units` and `make test-sanity`; `run` continues after a failed playbook by default (`--exitfirst` stops early).
 - `make test` runs `test-sanity` and `test-units`; the integration targets test the built collection artifact.
-- `tests/ci.clab.yml`: the SR Linux image can be overridden with `SRL_IMAGE`, next to `SRL_VERSION`.
+- Support documentation: [Validated in CI](https://nokia-steward.github.io/openconfig-ansible-integration/support/#validated-in-ci) points to `.github/test-matrix.yml` for the tested versions, as in `nokia.sros`; `.github/workflows/README.md` describes where each suite runs.
 - Documentation workflow deploys to GitHub Pages in one job, from `main` or a manual run, built with Python 3.13.
 - GitHub Actions updated: `actions/checkout` and `actions/setup-python` v7, `actions/upload-artifact` v7, `actions/download-artifact` v8, `actions/upload-pages-artifact` and `actions/deploy-pages` v5, `softprops/action-gh-release` v3.
 
@@ -21,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - The collection tarball no longer includes the `.github` directory.
 - `make install-artifact` no longer warns that `.tmp/collections` is not a configured collections path.
 - `tests/playbooks/gNOI_System.yml` on SR OS: ping and traceroute run in Base to the system address, without `network_instance`, which SR OS 25.7.R2 rejects (`GMI #2007: Unsupported ProtoBuf leaf - field 'PingRequest.network_instance'`).
+- `tests/playbooks/gNMI_ConfigSubscription.yml`: the restore step resets the persistent connection first, which could be closed after the streaming subscription (`Connection reset by peer`).
 
 ## [2.0.4] - 2026-11-10
 
@@ -34,7 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Changed
 
-- Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.18+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/openconfig-ansible-integration/support/#supported-ansible-and-python-versions).
+- Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.18+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/openconfig-ansible-integration/support/#validated-in-ci).
 
 ## [2.0.2]
 

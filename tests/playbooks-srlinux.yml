@@ -1,0 +1,64 @@
+---
+# SR Linux integration test categories used by run.sh (suite
+# integration-srlinux, lab srlinux.clab.yml). The SR OS list is
+# playbooks-sros.yml.
+#
+# hosts: inventory group the category needs. If it has no hosts in the lab
+#        inventory, run.sh reports the category as SKIPPED instead of passing
+#        silently.
+#
+# Playbook suffixes name the YANG model family: _OC uses OpenConfig paths
+# (playbooks/vars/model_oc.yml), _SRL uses native SR Linux YANG. Playbooks
+# without a suffix take their native paths from the platform group_vars
+# (playbooks/group_vars/nokia_srlinux.yml).
+
+categories:
+  common:
+    description: "gNMI RPCs on every platform"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Capabilities.yml
+      - playbooks/gNMI_GetConfig.yml
+      - playbooks/gNMI_SubscribeOnce.yml
+      - playbooks/gNMI_Backup.yml
+  openconfig:
+    description: "OpenConfig YANG: Get, Subscribe and one Set example (LLDP)"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_GetConfig_OC.yml
+      - playbooks/gNMI_Config_OC.yml
+      - playbooks/gNMI_Subscribe_OC.yml
+  srlinux:
+    description: "SR Linux YANG"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Config_SRL.yml
+      - playbooks/gNMI_Subscribe_SRL.yml
+      - playbooks/gNMI_Restore_SRL.yml
+  depth:
+    description: "gNMI Depth extension (Get and Subscribe), native YANG"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_Depth.yml
+  commit_confirmed:
+    description: "gNMI Commit extension (confirmed commit) on Set, native YANG"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_CommitConfirmed.yml
+  config_subscription:
+    description: "gNMI ConfigSubscription extension on Subscribe, native YANG"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNMI_ConfigSubscription.yml
+  gnoi:
+    description: "gNOI System, File and Healthz RPCs"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNOI_System.yml
+      - playbooks/gNOI_File.yml
+      - playbooks/gNOI_Healthz_SRL.yml
+  gnsi:
+    description: "gNSI security RPCs (SR Linux with gNSI enabled)"
+    hosts: nokia_srlinux
+    playbooks:
+      - playbooks/gNSI_Validate_SRL.yml

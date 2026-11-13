@@ -101,13 +101,13 @@ The Platform column names the routers a playbook runs on. Playbooks for both pla
 
 ### Running the integration tests
 
-The test runner groups the playbooks into categories, defined in [`tests/playbooks.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks.yml), for example `common`, `sros`, `srlinux`, `gnoi` and `gnsi`. To run them in a containerlab topology:
+The test runner groups the playbooks into categories, one list per platform: [`tests/playbooks-sros.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks-sros.yml) and [`tests/playbooks-srlinux.yml`](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/tests/playbooks-srlinux.yml), for example `common`, `sros`, `srlinux`, `gnoi` and `gnsi`. Each list runs against a single-node containerlab topology, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`:
 
 ```bash
 cd tests
-./run.sh deploy                  # SR OS and SR Linux; --topo ci.clab.yml for SR Linux only
-./run.sh run --category common   # run one category
-./run.sh destroy
+./run.sh deploy --topo srlinux.clab.yml                            # or --topo sros.clab.yml
+./run.sh run --playbooks playbooks-srlinux.yml --category common   # run one category
+./run.sh destroy --topo srlinux.clab.yml
 ```
 
 The default `tests/ansible.cfg` uses the containerlab inventory under `tests/clab-ansible/`, generated on deploy. For physical lab routers, use a private inventory, for example under `tests/clab-lab/` (gitignored), and `ANSIBLE_CONFIG=tests/ansible_lab.cfg`.

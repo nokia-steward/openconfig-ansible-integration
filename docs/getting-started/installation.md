@@ -5,7 +5,7 @@
 
     The Ansible controller must reach the gRPC port of the routers (often `57400`).
     Ansible controllers run on Linux and macOS. On Windows, use WSL.
-    Older Ansible and Python releases no longer receive security fixes, see [Supported Ansible and Python versions](../support.md#supported-ansible-and-python-versions).
+    Older Ansible and Python releases no longer receive security fixes, see [Validated in CI](../support.md#validated-in-ci).
 
 ## External dependencies
 

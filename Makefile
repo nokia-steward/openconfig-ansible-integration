@@ -1,5 +1,5 @@
 .PHONY: help install-dev build-collection import-galaxy docs docs-serve test test-units test-sanity \
-	test-setup test-integration-srlinux test-integration install-artifact
+	test-setup test-integration-sros test-integration-srlinux install-artifact
 
 PYTHON ?= python3
 PYTHON_VERSION = $$($(PYTHON) -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
@@ -23,8 +23,8 @@ help:
 	@echo "  make test-setup       Install ansible-core \$$ANSIBLE_VERSION, requirements-dev.txt, protos"
 	@echo "  make test-sanity      ansible-test sanity"
 	@echo "  make test-units       ansible-test units and a syntax check of the shipped playbooks"
+	@echo "  make test-integration-sros     Containerlab SR OS (\$$SROS_VERSION, needs an SR-SIM license)"
 	@echo "  make test-integration-srlinux  Containerlab SR Linux (\$$SRL_VERSION)"
-	@echo "  make test-integration          Containerlab SR Linux and SR OS (needs an SR-SIM license)"
 
 install-dev:
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
@@ -65,11 +65,13 @@ test-units: install-artifact
 			"nokia.openconfig.$$(basename "$$playbook" .yml)" || exit 1; \
 	done
 
-test-integration-srlinux: install-artifact
-	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo ci.clab.yml --suite integration-srlinux
+test-integration-sros: install-artifact
+	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo sros.clab.yml \
+		--playbooks playbooks-sros.yml --suite integration-sros
 
-test-integration: install-artifact
-	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo topo.clab.yml --suite integration
+test-integration-srlinux: install-artifact
+	ANSIBLE_COLLECTIONS_PATH=$(COLLECTIONS) tests/run.sh integration --topo srlinux.clab.yml \
+		--playbooks playbooks-srlinux.yml --suite integration-srlinux
 
 install-artifact:
 	tools/build_openconfig_protos.sh
