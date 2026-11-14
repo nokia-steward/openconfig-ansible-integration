@@ -1,7 +1,7 @@
 ---
 # gNOI Healthz on SR Linux (SR OS does not implement Healthz). Paths are
 # native SR Linux component paths (gnoi_healthz_path in group_vars).
-- name: gNOI Healthz SR Linux
+- name: gNOI · healthz service
   hosts: nokia_srlinux
   gather_facts: false
 

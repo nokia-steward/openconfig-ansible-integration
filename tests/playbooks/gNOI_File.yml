@@ -1,7 +1,7 @@
 ---
 # gNOI File round trip in gnoi_file_dir (platform group_vars): Put, Stat,
 # Get, Remove.
-- name: gNOI File
+- name: gNOI · file service
   hosts: all
   gather_facts: false
 

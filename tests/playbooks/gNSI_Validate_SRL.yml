@@ -1,7 +1,7 @@
 ---
 # gNSI on SR Linux (gNSI enabled on the mgmt grpc-server). Read-only RPCs plus
 # a Certz profile round trip; Rotate RPCs are not run against the lab.
-- name: gNSI SR Linux
+- name: gNSI · certz, authz, pathz, credentialz services
   hosts: nokia_srlinux
   gather_facts: false
 
@@ -16,9 +16,11 @@
       nokia.openconfig.gnsi_certz_get_profile_list:
       register: profiles
 
+    # SR Linux 25.10 and newer reject an unspecified CSR suite (INVALID_ARGUMENT)
     - name: Certz CanGenerateCSR
       nokia.openconfig.gnsi_certz_can_generate_csr:
         params:
+          csrSuite: CSRSUITE_X509_KEY_TYPE_ECDSA_PRIME256V1_SIGNATURE_ALGORITHM_SHA_2_256
           commonName: ansible.example.com
       register: csr
 

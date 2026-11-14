@@ -1,0 +1,55 @@
+# Test matrix: the single source of truth for GitHub Actions (.github/workflows/ci.yml) and
+# nokia-steward-validator. Format: nokia-steward pattern version 1.
+#
+# Controller versions follow the support policy shared with nokia.sros and nokia.nsp: the
+# ansible-core releases that still receive security fixes, each paired with a controller Python
+# that it supports. ansible-core devel is an early warning and never blocks a merge.
+#
+# sanity, units: one row per ansible-core and Python pair.
+# integration: one case per router release, each in a single-node lab (tests/sros.clab.yml or
+# tests/srlinux.clab.yml, chosen by the sros or srlinux input) running the one test list,
+# tests/playbooks.yml; categories for another platform are skipped. Router releases: the x.10 releases, today
+# 25.10 and 26.10. From 2027: the x.10 releases of the previous two years and the latest release
+# of the current year (for example 25.10, 26.10 and 27.3). Each case pairs one router release
+# with one controller pair and names the image path it pulls (registry). A release without a
+# patch number, e.g. 26.10, runs the newest patch release in that registry; the Makefile logs
+# the image it picked.
+version: 1
+
+inputs:
+  python:   {toolchain: python}
+  ansible:  {env: ANSIBLE_VERSION}
+  srlinux:  {env: SRL_VERSION, requires: [srlinux]}
+  sros:     {env: SROS_VERSION, requires: [srsim]}
+  registry: {env: REGISTRY}
+
+suites:
+  sanity:
+    run: make test-sanity
+    timeout_minutes: 30
+    cases:
+      - {python: '3.12', ansible: '2.20'}
+      - {python: '3.14', ansible: '2.21'}
+      - {python: '3.13', ansible: '2.22'}
+      - {python: '3.14', ansible: devel, experimental: true}
+
+  units:
+    run: make test-units
+    timeout_minutes: 30
+    cases:
+      - {python: '3.12', ansible: '2.20'}
+      - {python: '3.14', ansible: '2.21'}
+      - {python: '3.13', ansible: '2.22'}
+      - {python: '3.14', ansible: devel, experimental: true}
+
+  # The SR OS cases need an SR-SIM license (SRSIM_LICENSE secret on GitHub, or
+  # nokia-steward-validator, which runs the whole suite); GitHub runs the SR Linux cases.
+  integration:
+    run: make test-integration
+    timeout_minutes: 45
+    cases:
+      - {python: '3.14', ansible: '2.21', sros: '25.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.13', ansible: '2.22', sros: '26.10.R1', registry: 'registry.srlinux.dev/pub/nokia_srsim'}
+      - {python: '3.14', ansible: '2.21', srlinux: '25.10', registry: 'ghcr.io/nokia/srlinux'}
+      # 26.10 once ghcr.io/nokia/srlinux has it; GitHub runners cannot reach registry.srlinux.dev
+      - {python: '3.13', ansible: '2.22', srlinux: '26.7', registry: 'ghcr.io/nokia/srlinux'}

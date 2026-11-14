@@ -1,5 +1,5 @@
 ---
-- name: gNMI Backup Configuration
+- name: gNMI · config backup
   hosts: all
   gather_facts: false
 

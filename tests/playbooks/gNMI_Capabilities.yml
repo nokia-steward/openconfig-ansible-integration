@@ -1,5 +1,5 @@
 ---
-- name: gNMI Capabilities
+- name: gNMI · capabilities
   hosts: all
   gather_facts: false
 

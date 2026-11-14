@@ -16,7 +16,10 @@ state_leaf: ''
 config_subscription_once_supported: false
 
 # gNOI
-gnoi_network_instance: management
+# SR OS rejects PingRequest.network_instance (GMI #2007, seen on 25.7.R2), so
+# System Ping and Traceroute run in Base and target the system address
+gnoi_network_instance: ''
+gnoi_ping_destination: 10.0.0.110
 gnoi_file_dir: "cf3:"
 # SR OS accepts only 555 (read-only) and 777; a read-only file cannot be
 # overwritten or removed over gNOI

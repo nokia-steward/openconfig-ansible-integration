@@ -1,8 +1,8 @@
 ---
 # Native YANG on each platform: config_sub_path, config_leaf, state_leaf and
 # commit_path come from the nokia_srsim and nokia_srlinux group_vars.
-- name: gNMI ConfigSubscription extension
-  hosts: nokia_srsim:nokia_srlinux
+- name: gNMI · config subscription extension
+  hosts: all
   gather_facts: false
 
   vars:
@@ -109,6 +109,11 @@
             fail_msg: "sync-done messages: {{ sync_done }}"
 
       always:
+        # The persistent connection can be gone after the streaming subscription
+        # (seen on GitHub: connection reset by peer); the restore opens a new one.
+        - name: Reset the persistent connection
+          ansible.builtin.meta: reset_connection
+
         - name: Restore the original value
           nokia.openconfig.gnmi_set:
             update: "{{ [{'path': commit_path, 'value': original_value}] if original_value | default('') != '' else omit }}"

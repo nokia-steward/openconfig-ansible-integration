@@ -1,5 +1,5 @@
 ---
-- name: gNMI Depth extension
+- name: gNMI · depth extension (get, subscribe)
   hosts: all
   gather_facts: false
 

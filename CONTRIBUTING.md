@@ -61,36 +61,42 @@ User documentation is built with **MkDocs** (`make docs`); the site is published
 
 The collection needs no other Ansible collections.
 
-Install [containerlab](https://containerlab.dev):
+Install [containerlab](https://containerlab.dev) 0.83.0 or newer (0.82.0 is the first release that
+leaves out the TLS 1.3 cipher `tls-aes128-ccm8-sha256`, which SR OS 26.7 and newer reject):
 
 ```bash
-bash -c "$(curl -sL https://get.containerlab.dev)"
+bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.83.0
 ```
 
 ### 5. Prepare images and licenses
 
-Pull the `nokia_srsim` and `nokia_srlinux` container images, and copy a valid SR OS license file to `tests/license.txt`.
-
+Each platform has its own single-node lab, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`; both run the one test
+list, `tests/playbooks.yml`, which skips the categories of the other platform. Pull the `nokia_srsim` or
+`nokia_srlinux` container image. SR OS also needs a valid license file at `tests/license.txt` (or
+`SRSIM_LICENSE_FILE` pointing at one).
 
 ### 6. Deploy and test the example lab
 
 ```bash
 cd tests
-chmod +x run.sh
-./run.sh deploy
+./run.sh deploy --topo srlinux.clab.yml          # or --topo sros.clab.yml
 ```
 
 ### 7. Run all regression tests
 
 ```bash
-./run.sh run --quiet --all
+./run.sh run --quiet                             # --category common for one category
 ```
 
 ### 8. Clean up when finished
 
 ```bash
-./run.sh destroy
+./run.sh destroy --topo srlinux.clab.yml         # or --topo sros.clab.yml
 ```
+
+`make test-integration` does all three steps against the built collection artifact, for SR OS when `SROS_VERSION`
+is set and for SR Linux otherwise (`make test-integration-sros` and `make test-integration-srlinux` pick the platform
+explicitly). Results are written to `tests/output/junit/` and the playbook logs to `tests/output/logs/`.
 
 ---
 
@@ -104,7 +110,7 @@ Follow Ansible and Python best practices:
 * Update `CHANGELOG.md` and `README.md` for user-visible changes
 * Validate your work with:
 
-  * `./run.sh sanity` and `./run.sh units`
+  * `make test-sanity` and `make test-units`
   * Linting and style checks
   * Unit and integration test suites
 
@@ -132,7 +138,7 @@ We welcome all contributions — from small fixes to major enhancements. Whether
 
 Before submitting a pull request:
 
-* Run all tests (`./run.sh sanity` and `./run.sh units`)
+* Run all tests (`make test-sanity` and `make test-units`)
 * Follow [PEP 8](https://peps.python.org/pep-0008/) and Ansible plugin guidelines
 * Ensure changes are documented and clearly commented
 * Update or add integration tests where relevant
