@@ -1,5 +1,5 @@
 ---
-- name: Nokia SR OS Set/Get Configuration
+- name: gNMI · config set/get · Nokia SROS
   hosts: nokia_srsim
   gather_facts: false
 

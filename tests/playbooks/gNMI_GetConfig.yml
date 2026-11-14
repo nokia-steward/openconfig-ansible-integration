@@ -1,5 +1,5 @@
 ---
-- name: gNMI Get Configuration
+- name: gNMI · get full configuration
   hosts: all
   gather_facts: false
 

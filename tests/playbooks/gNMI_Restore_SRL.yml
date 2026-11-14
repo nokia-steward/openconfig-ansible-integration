@@ -1,7 +1,7 @@
 ---
 # Full configuration restore (REPLACE /) from a gnmi_set backup file. SR OS
 # rejects a REPLACE / built from its own Get output, so this runs on SR Linux.
-- name: Nokia SR Linux Restore Configuration
+- name: gNMI · restore · Nokia SRLinux
   hosts: nokia_srlinux
   gather_facts: false
 

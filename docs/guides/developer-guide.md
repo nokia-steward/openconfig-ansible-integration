@@ -42,7 +42,7 @@ The `.proto` trees are complete, but modules exist only for RPCs that **Nokia SR
 Add an entry only when:
 
 1. Nokia documents the RPC on at least one platform, and a lab device does not return `UNIMPLEMENTED`.
-2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, and list `integration` under `validation`.
+2. The mock server implements it and a unit test covers it. Add an integration task on `nokia_srsim` / `nokia_srlinux` when the RPC is safe to run in the lab, add the playbook to the category of `tests/playbooks.yml` that matches the platforms it supports, and list `integration` under `validation`.
 
 RPCs that cannot run safely in the lab (reboot, factory reset, OS install, gNSI rotations) are listed with `validation: [unit]`; their module notes say so. The manifest header lists RPCs that were evaluated and left out because both lab platforms return `UNIMPLEMENTED`.
 
@@ -118,20 +118,32 @@ Generated `*_pb2.py` files are **gitignored**; CI and release builds run the scr
 
 ## Tests
 
-Before pushing, run the same unit step CI uses (build protos, then `ansible-test units --venv`):
+`.github/test-matrix.yml` lists the test suites and the exact version combinations. CI runs every case as `make test-setup` followed by `make test-<suite>`, and you can run the same targets locally:
 
 ```bash
-make install-dev   # once: .venv + requirements-dev.txt
-make test          # or: make test-units / make test-sanity
+make test-setup                  # ansible-core $ANSIBLE_VERSION (default 2.22), requirements-dev.txt, protos
+make test-sanity                 # ansible-test sanity
+make test-units                  # ansible-test units and a syntax check of the shipped playbooks
+make test-integration            # containerlab: SR OS when $SROS_VERSION is set, else SR Linux $SRL_VERSION
+make test-integration SROS_VERSION=26.10.R1        # needs an SR-SIM license
+make test-integration SRL_VERSION=26.7 REGISTRY=ghcr.io/nokia/srlinux
 ```
 
+`REGISTRY` is the image path without the tag. A release without a patch number, such as `26.10`, runs the newest patch release in that registry; the target logs the image it picked.
+
+The integration tests are not end-to-end tests: each platform has its own single-node lab, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`, and both run the one test list, `tests/playbooks.yml`. Each category there names the platforms it applies to (`hosts: all`, or `nokia_srsim` / `nokia_srlinux` for a play that targets one device model), the same pattern as the hosts of its playbooks; a category with no matching host in the lab is reported as skipped. The platform groups are declared in `tests/platforms.yml`, so a pattern may name a platform the lab lacks; to test another platform, add its group there and to the categories it supports. The integration targets build and install the collection artifact first, deploy the lab, run all categories of the list and destroy the lab. They need containerlab 0.83.0 or newer: older releases render a TLS 1.3 cipher that SR OS 26.7 and newer reject, and the node then starts without gRPC. Results are written to `tests/output/junit/`, the playbook logs to `tests/output/logs/`. Step by step:
+
 ```bash
-tools/ansible_test.sh units
+tools/ansible_test.sh units --python 3.13
 tools/ansible_test.sh sanity --docker default   # when Docker is available
 
-cd tests && ./run.sh units
-cd tests && ./run.sh integration   # containerlab
+cd tests
+./run.sh deploy --topo srlinux.clab.yml         # or --topo sros.clab.yml
+./run.sh run --category common
+./run.sh destroy --topo srlinux.clab.yml
 ```
+
+ansible-core devel runs as an experimental case: its failures are reported but never block a merge. The SR OS cases need a license; without an `SRSIM_LICENSE` secret, GitHub lists them as not run, and a maintainer runs them with nokia-steward-validator, which posts the result to the pull request. See [.github/workflows/README.md](https://github.com/nokia-steward/openconfig-ansible-integration/blob/main/.github/workflows/README.md). `.github/workflows/ci.yml`, `.github/scripts/` and `tests/run.sh` are shared files of the nokia-steward test pattern; change the matrix, not these files.
 
 ## Documentation
 

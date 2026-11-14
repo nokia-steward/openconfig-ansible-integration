@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - Unreleased
+
+### Changed
+
+- Test pattern: `.github/test-matrix.yml` defines the suites (`sanity`, `units`, `integration`), run with `make test-setup` and `make test-<suite>`, with JUnit results. ansible-core devel runs as an experimental case of the weekly CI run.
+- Integration tests run each router release in a single-node lab, `tests/sros.clab.yml` or `tests/srlinux.clab.yml`. `make test-integration` picks the lab from `SROS_VERSION` or `SRL_VERSION`. Both labs run the one single test list, `tests/playbooks.yml` - which maps tests to supported platforms `all`, `nokia_srsim`, or `nokia_srlinux` based on Network OS capabilities and vendor models used.
+- Documentation workflow deploys to GitHub Pages in one job, from `main` or a manual run, built with Python 3.13.
+- GitHub Actions updated: `actions/checkout` and `actions/setup-python` v7, `actions/upload-artifact` v7, `actions/download-artifact` v8, `actions/upload-pages-artifact` and `actions/deploy-pages` v5, `softprops/action-gh-release` v3.
+
+### Fixed
+
+- The collection tarball no longer includes the `.github` directory.
+- `make install-artifact` no longer warns that `.tmp/collections` is not a configured collections path.
+- `tests/playbooks/gNOI_System.yml` on SR OS: ping and traceroute run in Base to the system address, without `network_instance`, which SR OS 25.7.R2 rejects (`GMI #2007: Unsupported ProtoBuf leaf - field 'PingRequest.network_instance'`).
+- `tests/playbooks/gNMI_ConfigSubscription.yml`: the restore step resets the persistent connection first, which could be closed after the streaming subscription (`Connection reset by peer`).
+- `tests/playbooks/gNSI_Validate_SRL.yml`: Certz `CanGenerateCSR` sets `csrSuite`, which SR Linux 25.10 and newer require (`Invalid or unspecified CSR suite: 0`).
+- `tests/playbooks/gNMI_CommitConfirmed.yml` and `gNMI_ConfigSubscription.yml` no longer warn `Could not match supplied host pattern` in the single-node labs: `tests/platforms.yml` declares both platform groups. The test `ansible.cfg` files set `host_pattern_mismatch = error`, so a host pattern naming an undeclared group fails.
+
 ## [2.0.4] - 2026-11-10
 
 ### Added
@@ -16,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Changed
 
-- Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.18+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/openconfig-ansible-integration/support/#supported-ansible-and-python-versions).
+- Pinned to officially supported Ansible/Python releases, which still receive security (CVE) fixes: `ansible-core` 2.20+ (was 2.18+) and Python 3.12+, recommended 2.22 with Python 3.13. Older releases are best-effort only, see [Support](https://nokia-steward.github.io/openconfig-ansible-integration/support/#validated-in-ci).
 
 ## [2.0.2]
 

@@ -7,7 +7,8 @@ name: ansible
 topology:
   kinds:
     nokia_srlinux:
-      image: ghcr.io/nokia/srlinux:${SRL_VERSION:=25.7.2}
+      # Defaults without make, which sets the image from .github/test-matrix.yml.
+      image: ${SRL_IMAGE:=ghcr.io/nokia/srlinux}:${SRL_VERSION:=25.10}
 
   nodes:
     srl:

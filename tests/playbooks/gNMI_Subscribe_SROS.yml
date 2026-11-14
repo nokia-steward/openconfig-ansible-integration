@@ -1,5 +1,5 @@
 ---
-- name: Nokia SR OS Streaming Telemetry
+- name: gNMI · subscribe sample · Nokia SROS
   hosts: nokia_srsim
   gather_facts: false
 
@@ -26,7 +26,7 @@
           - prefixes | select('search', '^/state/port\[port-id=1/1/c1/1\]/ethernet/statistics') | list | length > 0
           - prefixes | select('search', '^/state/router\[router-name=Base\]/interface') | list | length > 0
 
-- name: Nokia SR OS Streaming Telemetry, one setting per path
+- name: gNMI · subscribe per path · Nokia SROS
   hosts: nokia_srsim
   gather_facts: false
 

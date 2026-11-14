@@ -1,5 +1,5 @@
 ---
-- name: gNMI Subscribe ONCE
+- name: gNMI · subscribe once
   hosts: all
   gather_facts: false
 

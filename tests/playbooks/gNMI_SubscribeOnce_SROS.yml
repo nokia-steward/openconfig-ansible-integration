@@ -1,5 +1,5 @@
 ---
-- name: Nokia SR OS Stream Large Configuration
+- name: gNMI · subscribe once · Nokia SROS
   hosts: nokia_srsim
   gather_facts: false
 

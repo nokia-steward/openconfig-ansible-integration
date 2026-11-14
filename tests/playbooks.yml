@@ -1,9 +1,13 @@
 ---
-# Integration test categories used by run.sh.
+# Integration test categories used by run.sh, for every platform (suite integration).
+# Each case of the suite deploys one single-node lab, tests/sros.clab.yml or
+# tests/srlinux.clab.yml, and runs this whole list against it.
 #
-# hosts: inventory group the category needs. If it has no hosts in the lab
-#        inventory (for example nokia_srsim without an SR-SIM license), run.sh
-#        reports the category as SKIPPED instead of passing silently.
+# hosts: the platforms a category applies to, the same pattern as the hosts of its
+#        playbooks. `all` runs on every vendor. A play for one device model names that
+#        group (nokia_srsim or nokia_srlinux). A category with no matching host in the
+#        lab is reported as SKIPPED. To test another platform, add its group to
+#        tests/platforms.yml.
 #
 # Playbook suffixes name the YANG model family: _OC uses OpenConfig paths
 # (playbooks/vars/model_oc.yml), _SROS and _SRL use native SR OS and SR Linux
@@ -12,7 +16,7 @@
 
 categories:
   common:
-    description: "gNMI RPCs on every platform"
+    description: "gNMI Capabilities, Get, Subscribe ONCE and backup"
     hosts: all
     playbooks:
       - playbooks/gNMI_Capabilities.yml
@@ -56,14 +60,18 @@ categories:
     playbooks:
       - playbooks/gNMI_ConfigSubscription.yml
   gnoi:
-    description: "gNOI System, File and Healthz RPCs"
+    description: "gNOI System and File RPCs"
     hosts: all
     playbooks:
       - playbooks/gNOI_System.yml
       - playbooks/gNOI_File.yml
+  gnoi_healthz:
+    description: "gNOI Healthz RPCs"
+    hosts: nokia_srlinux
+    playbooks:
       - playbooks/gNOI_Healthz_SRL.yml
   gnsi:
-    description: "gNSI security RPCs (SR Linux with gNSI enabled)"
+    description: "gNSI security RPCs"
     hosts: nokia_srlinux
     playbooks:
       - playbooks/gNSI_Validate_SRL.yml

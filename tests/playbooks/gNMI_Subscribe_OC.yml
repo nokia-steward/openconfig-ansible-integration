@@ -1,5 +1,5 @@
 ---
-- name: OpenConfig Streaming Telemetry
+- name: gNMI · subscribe sample · OpenConfig
   hosts: all
   gather_facts: false
 

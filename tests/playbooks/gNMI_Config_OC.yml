@@ -1,5 +1,5 @@
 ---
-- name: OpenConfig Set/Get Configuration
+- name: gNMI · config set/get · OpenConfig
   hosts: all
   gather_facts: false
 
