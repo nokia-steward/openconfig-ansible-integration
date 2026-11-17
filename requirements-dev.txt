@@ -8,7 +8,7 @@ pytest-mock
 pytest-xdist
 mock
 # Documentation (MkDocs site — make docs)
-mkdocs>=1.5.0
+mkdocs>=1.6.1
 mkdocs-material>=9.8.1
 # pymdownx.blocks.* (/// tab) needs pymdown-extensions 10+
 pymdown-extensions>=13.1
