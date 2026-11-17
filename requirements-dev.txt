@@ -10,6 +10,6 @@ mock
 mkdocs>=1.5.0
 mkdocs-material>=9.0.0
 # pymdownx.blocks.* (/// tab) needs pymdown-extensions 10+
-pymdown-extensions>=10.0
+pymdown-extensions>=13.1
 PyYAML>=6.0.3
 Jinja2>=3.0
