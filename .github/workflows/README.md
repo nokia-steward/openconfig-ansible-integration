@@ -8,6 +8,10 @@ This directory contains the test automation for the OpenConfig Ansible Collectio
 - `docs.yml` - builds the MkDocs site and publishes it to GitHub Pages
 - `release.yml` - builds, smoke-tests and publishes the collection for a GitHub release
 
+Dependabot (`../dependabot.yml`) proposes pip and GitHub Actions upgrades, grouped into production and
+development (minor and patch version updates) plus a security group, following the same pattern as
+[vscode-netconf](https://github.com/nokia-steward/vscode-netconf/blob/main/.github/dependabot.yml).
+
 `ci.yml`, `../scripts/matrix.py`, `../scripts/summary.py` and `../../tests/run.sh` are copied
 unchanged from the nokia-steward test pattern (version 1, maintained in nokia-steward-validator).
 Change the test matrix, not these files.
